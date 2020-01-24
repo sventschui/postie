@@ -13,7 +13,7 @@ const Header = () => (
 			.wrapper {
 				/* wrapper to not have the header overlap stuff */
 				height: 56px;
-				flex: 0 0 56px;
+				flex: 0 0 auto;
 			}
 
 			.header {

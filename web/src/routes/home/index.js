@@ -61,7 +61,8 @@ const Home = ({ messageId }) => {
     if (result.error) return <p>Oh no...</p>;
 
     return (
-      <ol>
+      <div>
+		  <ol>
         {result.data &&
           result.data.messages.edges.map(({ node: message }) => (
             <li>
@@ -78,13 +79,16 @@ const Home = ({ messageId }) => {
               </Link>
             </li>
           ))}
-        <button
+		  </ol>
+
+		  <button
+		  className="button-outline"
           disabled={result.fetching}
           onClick={() => {
             setAfter(result.data.messages.pageInfo.endCursor);
           }}
         >
-          next
+          load more
         </button>
         <style jsx>{`
           ol {
@@ -122,9 +126,15 @@ const Home = ({ messageId }) => {
           .subject {
             font-weight: normal;
             font-size: 14px;
-          }
+		  }
+		  
+		  button {
+			  margin: 0 auto;
+			  margin-bottom: 10px;
+			  display: block;
+		  }
         `}</style>
-      </ol>
+      </div>
     );
   }
 
@@ -135,7 +145,8 @@ const Home = ({ messageId }) => {
       <style jsx>{`
         .home {
           display: flex;
-          flex: 1;
+		  flex: 1;
+		  overflow: hidden;
         }
 
         .list {

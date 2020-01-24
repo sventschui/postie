@@ -39,11 +39,13 @@ export default class App extends Component {
 	render() {
 		return (
 			<Provider value={client}>
-                <Header />
-                <Router onChange={this.handleRoute}>
-                    <Home path="/" />
-                    <Home path="/:messageId" />
-                </Router>
+                <div className="wrapper" >
+                    <Header />
+                    <Router onChange={this.handleRoute}>
+                        <Home path="/" />
+                        <Home path="/:messageId" />
+                    </Router>
+                </div>
                 <style jsx global>{`
                     html, body {
                         height: 100%;
@@ -54,10 +56,10 @@ export default class App extends Component {
                         -moz-osx-font-smoothing: grayscale;
                     }
 
-                    body {
+                    .wrapper {
                         display: flex;
                         flex-direction: column;
-                        min-height: 100vh;
+                        height: 100vh;
                     }
                     
                     * {
