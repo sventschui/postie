@@ -1,15 +1,29 @@
 import { h, Component } from 'preact';
 import { Router } from 'preact-router';
-import { createClient, defaultExchanges, Provider } from '@urql/preact';
+import { createClient, dedupExchange, fetchExchange, Provider } from '@urql/preact';
+import { cacheExchange } from '@urql/exchange-graphcache';
+import { relayPagination } from '@urql/exchange-graphcache/extras';
+
+if (process.env.NODE_ENV === 'development') {
+    require('preact/debug');
+}
 
 import Header from './components/header';
 
 // Code-splitting is automated for routes
 import Home from './routes/home';
 
+const cache = cacheExchange({
+    resolvers: {
+      Query: {
+        messages: relayPagination(),
+      },
+    },
+  });
+
 const client = createClient({
   url: 'http://localhost:8025/graphql',
-  exchanges: defaultExchanges,
+  exchanges: [dedupExchange, cache, fetchExchange],
 });
 
 export default class App extends Component {

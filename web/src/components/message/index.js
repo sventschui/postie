@@ -50,6 +50,25 @@ const useResizeObserver = () => {
     return [setNode, entry];
 };
 
+function formatSize(bytes) {
+    if (bytes < 1024) {
+        return `${Math.round(bytes * 10) / 10} B`;
+    }
+
+    const kb = bytes / 1024;
+    if (kb < 1024) {
+        return `${Math.round(kb * 10) / 10} KB`;
+    }
+
+    const mb = kb / 1024;
+    if (mb < 1024) {
+        return `${Math.round(mb * 10) / 10} MB`;
+    }
+
+    const gb = mb / 1024;
+    return `${Math.round(gb * 10) / 10} GB`;
+}
+
 export default function Message({ id }) {
   const [result] = useQuery({
     query: `query Q($id: ID!) {
@@ -65,6 +84,12 @@ export default function Message({ id }) {
                 html
                 text
                 dateReceived
+                attachments {
+                    attachmentId
+                    filename
+                    contentType
+                    size
+                }
             }
         }`,
     variables: {
@@ -155,6 +180,19 @@ export default function Message({ id }) {
           <dt>Subject:</dt>
           <dd>{message.subject}</dd>
         </dl>
+        <div className="meta-attachments" >
+            <ul>
+                {message.attachments.map(attachment => (
+                    <li>
+                        <a target="_blank" href={`/attachment/${attachment.attachmentId}`} >
+                            {attachment.filename || attachment.attachmentId}
+                            {' '}
+                            <small>({attachment.contentType.split('/')[1].toUpperCase()}, {formatSize(attachment.size)})</small>
+                        </a>
+                    </li>
+                ))}
+            </ul>
+        </div>
         <div className="meta-actions">
           <button className="button button-outline" onClick={toggleIOsModal}>Show iOS preview</button>
         </div>
@@ -242,6 +280,21 @@ export default function Message({ id }) {
           padding: 10px;
         }
 
+        .meta-attachments {
+            font-size: 11px;
+        }
+
+        .meta-attachments ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .meta-attachments li {
+            margin: 0;
+            padding: 0;
+        }
+
         .device-selection {
             display: flex;
             align-items: center;
@@ -297,6 +350,7 @@ export default function Message({ id }) {
           margin: 0;
           display: grid;
           grid-template-columns: auto 1fr;
+          grid-template-rows: auto auto 1fr;
           font-size: 14px;
         }
 

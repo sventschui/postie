@@ -53,6 +53,14 @@ const typeDefs = gql`
       subject: String
       dateReceived: String!
       dateSent: String
+      attachments: [MessageAttachment!]!
+  }
+
+  type MessageAttachment {
+    attachmentId: String!
+    filename: String
+    contentType: String!
+    size: Int!
   }
 
   type SenderRecipient {
