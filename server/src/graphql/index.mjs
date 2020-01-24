@@ -146,6 +146,7 @@ export default function createServer({ messages, attachmentsBucket }) {
     const server = new ApolloServer({
         typeDefs,
         resolvers,
+        cors: true,
         context: { messages, attachmentsBucket },
     });
     return server;
