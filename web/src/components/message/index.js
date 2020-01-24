@@ -255,7 +255,7 @@ export default function Message({ id }) {
             align-items: center;
             justify-content: center;
             flex: 1;
-            overflow: auto;
+            overflow: hidden;
         }
         .mail {
             width: 100%;

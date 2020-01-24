@@ -62,27 +62,26 @@ const Home = ({ messageId }) => {
 
     return (
       <div>
-		  <ol>
-        {result.data &&
-          result.data.messages.edges.map(({ node: message }) => (
-            <li>
-              <Link href={`/${message.id}`}>
-                <span className="from-date">
-                  <span className="from">
-                    {message.from && message.from.text.replace(/<.+@.+>/, "")}
+        <ol>
+          {result.data &&
+            result.data.messages.edges.map(({ node: message }) => (
+              <li>
+                <Link href={`/${message.id}`}>
+                  <span className="from-date">
+                    <span className="from">
+                      {message.from && message.from.text.replace(/<.+@.+>/, "")}
+                    </span>
+                    <span className="date">
+                      {formatDate(message.dateReceived)}
+                    </span>
                   </span>
-                  <span className="date">
-                    {formatDate(message.dateReceived)}
-                  </span>
-                </span>
-                <span className="subject">{message.subject}</span>
-              </Link>
-            </li>
-          ))}
-		  </ol>
-
-		  <button
-		  className="button-outline"
+                  <span className="subject">{message.subject}</span>
+                </Link>
+              </li>
+            ))}
+        </ol>
+        <button
+          className="button-outline"
           disabled={result.fetching}
           onClick={() => {
             setAfter(result.data.messages.pageInfo.endCursor);
@@ -126,13 +125,13 @@ const Home = ({ messageId }) => {
           .subject {
             font-weight: normal;
             font-size: 14px;
-		  }
-		  
-		  button {
-			  margin: 0 auto;
-			  margin-bottom: 10px;
-			  display: block;
-		  }
+          }
+
+          button {
+            margin: 0 auto;
+            margin-bottom: 10px;
+            display: block;
+          }
         `}</style>
       </div>
     );
@@ -145,8 +144,8 @@ const Home = ({ messageId }) => {
       <style jsx>{`
         .home {
           display: flex;
-		  flex: 1;
-		  overflow: hidden;
+          flex: 1;
+          overflow: hidden;
         }
 
         .list {
