@@ -1,6 +1,8 @@
 import mailParserModule from 'mailparser';
 import htmlToText from 'html-to-text';
 
+import { onMessagesAdded } from './graphql/index.mjs';
+
 const { simpleParser } = mailParserModule;
 
 export default async function storeMailInDb({
@@ -40,7 +42,7 @@ export default async function storeMailInDb({
 
     let toArray = Array.isArray(to) ? to : [to];
 
-    await messages.insertOne({
+    const message = {
         from: from && { value: from.value, text: from.text },
         to: toArray.map(item => item && ({ value: item.value, text: item.text })),
         subject,
@@ -48,5 +50,9 @@ export default async function storeMailInDb({
         text,
         html,
         attachments: attachmentsWithId,
-    });
+    };
+
+    await messages.insertOne(message);
+
+    await onMessagesAdded([message]);
 }

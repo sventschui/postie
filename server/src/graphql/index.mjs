@@ -1,7 +1,27 @@
 import apolloServerModule from 'apollo-server';
 import { applyPagination, querySortById, querySortBy, parseCursor, formatCursor } from './utils.mjs';
+import m from 'mongodb';
 
-const { ApolloServer, gql } = apolloServerModule;
+const { ObjectID } = m;
+
+const { ApolloServer, gql, PubSub } = apolloServerModule;
+
+const pubsub = new PubSub();
+
+const MESSAGES_ADDED = 'MESSAGES_ADDED';
+const MESSAGES_DELETED = 'MESSAGES_DELETED';
+
+export function onMessagesAdded(messages) {
+    return pubsub.publish(MESSAGES_ADDED, { messagesAdded: messages });
+}
+
+export function onMessagesDeleted(ids) {
+    return pubsub.publish(MESSAGES_DELETED, { messagesDeleted: ids });
+}
+
+setInterval(() => {
+    onMessagesAdded([{ _id: ObjectID(), subject: 'test', headers: { date: new Date() }, from: { text: 'test' }, to: [{ text: 'test' }] }])
+}, 1000)
 
 // The GraphQL schema
 const typeDefs = gql`
@@ -92,6 +112,14 @@ const fields = {
 
 // A map of functions which return data for the schema.
 const resolvers = {
+    Subscription: {
+        messagesAdded: {
+            subscribe: () => pubsub.asyncIterator(MESSAGES_ADDED),
+        },
+        messagesDeleted: {
+            subscribe: () => pubsub.asyncIterator(MESSAGES_DELETED),
+        },
+    },
   Message: {
     id(parent) {
         return formatCursor('message', parent._id);
@@ -180,6 +208,7 @@ export default function createServer({ messages, attachmentsBucket }) {
         typeDefs,
         resolvers,
         cors: true,
+        subscriptions: true,
         context: { messages, attachmentsBucket },
     });
     return server;

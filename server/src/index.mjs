@@ -38,8 +38,8 @@ const { MongoClient, GridFSBucket } = mongodbModule;
 
 
 
-    createGraphqlServer({ messages, attachmentsBucket }).listen(8025).then(({ url }) => {
-        console.log(`🚀 Server ready at ${url}`);
+    createGraphqlServer({ messages, attachmentsBucket }).listen(8025).then(({ url, subscriptionsUrl }) => {
+        console.log(`🚀 Server ready at ${url} / ${subscriptionsUrl}`);
     });
 })();
 
