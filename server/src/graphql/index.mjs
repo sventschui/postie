@@ -19,10 +19,6 @@ export function onMessagesDeleted(ids) {
     return pubsub.publish(MESSAGES_DELETED, { messagesDeleted: ids });
 }
 
-setInterval(() => {
-    onMessagesAdded([{ _id: ObjectID(), subject: 'test', headers: { date: new Date() }, from: { text: 'test' }, to: [{ text: 'test' }] }])
-}, 3000)
-
 // The GraphQL schema
 const typeDefs = gql`
   type Query {
