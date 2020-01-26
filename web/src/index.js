@@ -1,4 +1,5 @@
 import { h, Component } from 'preact';
+import { useState } from 'preact/hooks';
 import { Router } from 'preact-router';
 import { createClient, dedupExchange, fetchExchange, Provider } from '@urql/preact';
 import { cacheExchange } from '@urql/exchange-graphcache';
@@ -19,6 +20,10 @@ const cache = cacheExchange({
         messages: relayPagination(),
       },
     },
+    keys: {
+        SenderRecipient: () => null,
+        MessageAttachment: () => null,
+    } 
   });
 
 const client = createClient({
@@ -26,47 +31,38 @@ const client = createClient({
   exchanges: [dedupExchange, cache, fetchExchange],
 });
 
-export default class App extends Component {
-	
-	/** Gets fired when the route changes.
-	 *	@param {Object} event		"change" event from [preact-router](http://git.io/preact-router)
-	 *	@param {string} event.url	The newly routed URL
-	 */
-	handleRoute = e => {
-		this.currentUrl = e.url;
-	};
+export default function App() {
+    const [search, setSearch] = useState({});
 
-	render() {
-		return (
-			<Provider value={client}>
-                <div className="wrapper" >
-                    <Header />
-                    <Router onChange={this.handleRoute}>
-                        <Home path="/" />
-                        <Home path="/:messageId" />
-                    </Router>
-                </div>
-                <style jsx global>{`
-                    html, body {
-                        height: 100%;
-                        width: 100%;
-                        padding: 0;
-                        margin: 0;
-                        -webkit-font-smoothing: antialiased;
-                        -moz-osx-font-smoothing: grayscale;
-                    }
+    return (
+        <Provider value={client}>
+            <div className="wrapper" >
+                <Header onSearch={setSearch} search={search} />
+                <Router>
+                    <Home path="/" search={search} />
+                    <Home path="/:messageId" search={search} />
+                </Router>
+            </div>
+            <style jsx global>{`
+                html, body {
+                    height: 100%;
+                    width: 100%;
+                    padding: 0;
+                    margin: 0;
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;
+                }
 
-                    .wrapper {
-                        display: flex;
-                        flex-direction: column;
-                        height: 100vh;
-                    }
-                    
-                    * {
-                        box-sizing: border-box;
-                    }
-                `}</style>
-			</Provider>
-		);
-	}
+                .wrapper {
+                    display: flex;
+                    flex-direction: column;
+                    height: 100vh;
+                }
+                
+                * {
+                    box-sizing: border-box;
+                }
+            `}</style>
+        </Provider>
+    );
 }

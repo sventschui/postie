@@ -145,7 +145,6 @@ export default function Message({ id }) {
   }
 
   const scale = Math.min(scaleWidth, scaleHeight);
-  console.log({ scaleWidth, scaleHeight, scale });
 
   return (
     <div className="root">

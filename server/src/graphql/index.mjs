@@ -6,7 +6,7 @@ const { ApolloServer, gql } = apolloServerModule;
 // The GraphQL schema
 const typeDefs = gql`
   type Query {
-      messages(first: Int, after: String, last: Int, before: String, order: MessageOrder): MessageConnection!
+      messages(first: Int, after: String, last: Int, before: String, order: MessageOrder, to: String, subject: String, text: String): MessageConnection!
       message(id: ID!): Message
   }
 
@@ -97,7 +97,7 @@ const resolvers = {
         const { objectId } = parseCursor(id);
         return messages.findOne({ _id: objectId });
     },
-    async messages(parent, { first, after, last, before, order }, { messages }) {
+    async messages(parent, { first, after, last, before, order, to, subject, text }, { messages }) {
         if (after != null && before != null) {
             throw new Error('after and before must not be supplied at the same time!');
         }
@@ -127,11 +127,25 @@ const resolvers = {
         }
 
         let query;
+        let filter = {};
+        const regexOpts = ''; // adding 'i' here will make the search super slow...
+
+        if (to) {
+            filter['to.text'] = { $regex: new RegExp(to, regexOpts) }; // TODO: escape regex
+        }
+
+        if (subject) {
+            filter['subject'] = { $regex: new RegExp(subject, regexOpts) }; // TODO: escape regex
+        }
+
+        if (text) {
+            filter['text'] = { $regex: new RegExp(text, regexOpts) }; // TODO: escape regex
+        }
 
         if (!order || order.field === 'ID') {
-            query = querySortById(messages, before, after, order ? order.direction : 'ASC');
+            query = querySortById(messages, filter, before, after, order ? order.direction : 'ASC');
         } else {
-            query = querySortBy(messages, fields[order.field], before, after, order.direction)
+            query = querySortBy(messages, filter, fields[order.field], before, after, order.direction)
         }
 
         const totalCount = await messages.count({});

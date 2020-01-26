@@ -1,26 +1,30 @@
 // @flow
-import React from 'react';
+import React from "react";
 
 function pad(num) {
-  return `${num}`.padStart(2, '0');
+  return `${num}`.padStart(2, "0");
 }
 
-const MailEntry = ({
-  sender,
-  subject,
-  preheader,
-  dateReceived,
-}) => (
+const MailEntry = ({ sender, subject, preheader, dateReceived }) => (
   <div className="mail">
     <div className="meta">
       <i className="unread" />
       <p className="sender">{sender}</p>
-      <span className="received">{`${pad(dateReceived.getHours())}:${pad(dateReceived.getMinutes())}`}</span>
+      <span className="received">{`${pad(dateReceived.getHours())}:${pad(
+        dateReceived.getMinutes()
+      )}`}</span>
       <i className="caret" />
     </div>
-    <h1 className="subject" title={subject}>{subject}</h1>
-    <p className="preheader" title={preheader}>{preheader}</p>
+    <h1 className="subject" title={subject}>
+      {subject}
+    </h1>
+    <p className="preheader" title={preheader}>
+      {preheader}
+    </p>
     <style jsx>{`
+      * {
+        letter-spacing: normal; // reset milligram
+      }
       .mail {
         text-align: inherit;
         border: none;
@@ -30,7 +34,7 @@ const MailEntry = ({
         padding: 8px 15px 8px 30px;
         font-family: "San Francisco", sans-serif;
         background-color: white;
-        border-bottom: 1px solid #C8C7CC;
+        border-bottom: 1px solid #c8c7cc;
         width: 100%;
         height: 110px;
       }
@@ -49,7 +53,7 @@ const MailEntry = ({
         width: 11px;
         height: 11px;
         border-radius: 50%;
-        background-color: #007FFB;
+        background-color: #007ffb;
       }
 
       .sender {
@@ -68,7 +72,7 @@ const MailEntry = ({
         margin: 0;
         margin-left: 10px;
         flex-shrink: 0;
-        color: #8E8E93;
+        color: #8e8e93;
         line-height: 20px;
         font-size: 14px;
         font-weight: 300;
@@ -91,7 +95,7 @@ const MailEntry = ({
 
       .preheader {
         margin: 0;
-        color: #8E8E8E;
+        color: #8e8e8e;
         height: 48px;
         line-height: 24px;
         font-size: 16px;

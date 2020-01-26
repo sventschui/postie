@@ -80,8 +80,9 @@ export async function applyPagination(totalCount, query, first, last) {
 /**
  * Optimized version of query() when ordering by _id
  */
-export function querySortById(collection, before, after, direction) {
+export function querySortById(collection, inFilter, before, after, direction) {
   const filter = {
+    ...inFilter,
   };
 
   if (before) {
@@ -103,8 +104,8 @@ export function querySortById(collection, before, after, direction) {
   return collection.find(filter).sort([['_id', direction === 'ASC' ? 1 : -1]]);
 }
 
-export async function querySortBy(collection, field, before, after, direction) {
-  let filter = {};
+export async function querySortBy(collection, inFilter, field, before, after, direction) {
+  let filter = { ...inFilter };
   const limits = {};
   const ors = [];
   if (before) {

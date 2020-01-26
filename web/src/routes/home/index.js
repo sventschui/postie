@@ -1,8 +1,9 @@
 import { h } from "preact";
-import { useState } from "preact/hooks";
+import { useState, useRef, useEffect } from "preact/hooks";
 import { useQuery } from "@urql/preact";
 import { Link } from "preact-router/match";
 import Message from "../../components/message";
+import Loading from "../../components/loading";
 
 function pad(num) {
   return `${num}`.padStart(2, "0");
@@ -15,20 +16,38 @@ function formatDate(dateStr) {
   )}:${pad(date.getMinutes())}`;
 }
 
-const Home = ({ messageId }) => {
+function usePrevious(value) {
+	// The ref object is a generic container whose current property is mutable ...
+	// ... and can hold any value, similar to an instance property on a class
+	const ref = useRef();
+	
+	// Store current value in ref
+	useEffect(() => {
+	  ref.current = value;
+	}, [value]); // Only re-run if value changes
+	
+	// Return previous value (happens before update in useEffect above)
+	return ref.current;
+  }
+
+const Home = ({ messageId, search }) => {
   const [after, setAfter] = useState(
     "bWVzc2FnZTo1ZTI5NjBhZWI1NmExNzJhZTQyYjYyNzI="
   );
-  console.log({ after });
 
-  const [result] = useQuery(
+  const prevSearch = usePrevious(search);
+
+  console.log({ prevSearch, search });
+
+  let [result] = useQuery(
     {
-      query: `query Q($after: String) {
-		messages(first: 20, after: $after) {
+      query: `query Q($after: String, $to: String, $subject: String, $text: String) {
+		messages(first: 20, after: $after, to: $to, subject: $subject, text: $text) {
 			__typename
 			pageInfo {
 				__typename
 				endCursor
+				hasNextPage
 			}
 			edges {
 				__typename
@@ -49,7 +68,7 @@ const Home = ({ messageId }) => {
 			}
 		}
 	}`,
-      variables: { after }
+      variables: { after, ...search }
     },
     [after]
   );
@@ -58,10 +77,10 @@ const Home = ({ messageId }) => {
   window.result = result;
 
   function renderList() {
-    if (result.error) return <p>Oh no...</p>;
+	if (result.error) return <p>Oh no...</p>;
 
     return (
-      <div>
+      <div className="root">
         <ol>
           {result.data &&
             result.data.messages.edges.map(({ node: message }) => (
@@ -80,30 +99,66 @@ const Home = ({ messageId }) => {
               </li>
             ))}
         </ol>
-        <button
-          className="button-outline"
-          disabled={result.fetching}
-          onClick={() => {
-            setAfter(result.data.messages.pageInfo.endCursor);
-          }}
-        >
-          load more
-        </button>
-        <style jsx>{`
+        {result.data && result.data.messages.pageInfo.hasNextPage && (
+          <button
+            className="button-outline"
+            disabled={result.fetching}
+            onClick={() => {
+              setAfter(result.data.messages.pageInfo.endCursor);
+            }}
+          >
+            load more
+          </button>
+        )}
+		{result.fetching ? (
+			<div className={`loading-overlay ${result.data ? 'has-data' : ''}`}>
+				<div className="loader" >
+					<Loading color={result.data ? 'white' : 'purple'} />
+				</div>
+			</div>
+		) : null}
+		<style jsx>{`
+		.root {
+			position: relative;
+			min-height: 100%;
+            border-right: 1px solid #eee;
+		}
+		.loading-overlay {
+			position: absolute;
+			top: 0;
+			right: 0;
+			left: 0;
+			bottom: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.loader {
+			position: fixed;
+			top: 50%;
+		}
+
+		.loading-overlay.has-data {
+			background: rgba(0,0,0,.2)
+		}
           ol {
             list-style-type: none;
             margin: 0;
             padding: 0;
-            border-right: 1px solid #eee;
-          }
+		  }
+		  
+		  li {
+			margin: 0;
+		  }
 
           li :global(a) {
             display: flex;
-            flex-direction: column;
-            padding: 5px 10px;
+			flex-direction: column;
+            padding: 10px;
             border-bottom: 1px solid #eee;
             color: #333;
-          }
+		  }
 
           .from-date {
             display: flex;
@@ -151,6 +206,7 @@ const Home = ({ messageId }) => {
         .list {
           width: 200px;
           overflow: auto;
+          flex: 0 0 auto;
         }
       `}</style>
     </div>
