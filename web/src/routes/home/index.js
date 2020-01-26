@@ -117,6 +117,13 @@ const Home = ({ messageId, search }) => {
             border-right: 1px solid #eee;
 			overflow: hidden; /* prevent margin from breaking out */
           }
+
+		
+			:global(.dark-mode) .root {
+				border-color: #444;
+				background: #333;
+			}
+
           .loading-overlay {
             position: absolute;
             top: 0;
@@ -153,6 +160,12 @@ const Home = ({ messageId, search }) => {
             border-bottom: 1px solid #eee;
             color: #333;
           }
+
+		
+			:global(.dark-mode) li :global(a) {
+				border-color: #444;
+				color: #ccc;
+			}
 
           .from-date {
             display: flex;

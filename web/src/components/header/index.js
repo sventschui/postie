@@ -8,7 +8,27 @@ const ENTER = 13;
 
 const types = ["text", "subject", "to"];
 
-const Header = ({ onSearch, search }) => {
+const Sun = props => (
+  <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path
+      d="M16.53 22a5.5 5.5 0 100-11 5.5 5.5 0 000 11zm0-1a4.5 4.5 0 100-9 4.5 4.5 0 000 9zm0-14c-.277 0-.5.216-.5.495v2.01c0 .273.231.495.5.495.275 0 .5-.216.5-.495v-2.01a.503.503 0 00-.5-.495zm6.737 2.791a.494.494 0 00-.704-.003l-1.42 1.42a.503.503 0 00.003.704.494.494 0 00.704.004l1.42-1.421a.503.503 0 00-.003-.704zm2.791 6.738c0-.276-.216-.5-.495-.5h-2.01a.503.503 0 00-.495.5c0 .276.216.5.495.5h2.01a.503.503 0 00.495-.5zm-2.79 6.738a.494.494 0 00.002-.704l-1.42-1.42a.503.503 0 00-.704.003.494.494 0 00-.003.704l1.42 1.42a.503.503 0 00.704-.003zm-6.739 2.791c.276 0 .5-.216.5-.495v-2.01a.503.503 0 00-.5-.495c-.276 0-.5.216-.5.495v2.01c0 .273.232.495.5.495zm-6.738-2.79a.494.494 0 00.704.002l1.42-1.42a.503.503 0 00-.003-.704.494.494 0 00-.704-.003l-1.42 1.42a.503.503 0 00.003.704zM7 16.528c0 .276.216.5.495.5h2.01a.503.503 0 00.495-.5c0-.276-.216-.5-.495-.5h-2.01a.503.503 0 00-.495.5zm2.791-6.738a.494.494 0 00-.003.704l1.42 1.42a.503.503 0 00.704-.003.494.494 0 00.004-.704l-1.421-1.42a.503.503 0 00-.704.003z"
+      fill="#929292"
+      fill-rule="evenodd"
+    />
+  </svg>
+);
+
+const Moon = props => (
+  <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path
+      d="M21.836 17.831A5.5 5.5 0 1116.254 11a4.5 4.5 0 005.74 5.74c-.016.375-.07.74-.158 1.091zM12 16.495a4.502 4.502 0 013.005-4.246 5.5 5.5 0 005.74 5.74A4.502 4.502 0 0112 16.495z"
+      fill="#929292"
+      fill-rule="evenodd"
+    />
+  </svg>
+);
+
+const Header = ({ onSearch, search, onSetDarkMode }) => {
   const [typing, setTyping] = useState(false);
   const [text, setText] = useState("");
   const [type, setType] = useState("text");
@@ -120,8 +140,53 @@ const Header = ({ onSearch, search }) => {
             </div>
           ) : null}
         </div>
+        <button className="dark-mode-toggle">
+          <Sun
+            className="sun"
+            onClick={() => {
+              onSetDarkMode(false);
+            }}
+          />
+          <Moon
+            className="moon"
+            onClick={() => {
+              onSetDarkMode(true);
+            }}
+          />
+        </button>
       </header>
       <style jsx>{`
+        .dark-mode-toggle {
+          text-transform: none;
+          background: transparent;
+          border: none;
+          padding: 5px;
+          line-height: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+          margin: 0;
+        }
+
+        .dark-mode-toggle :global(.sun),
+        .dark-mode-toggle :global(.moon) {
+          width: 32px;
+          height: 32px;
+          fill: red;
+        }
+
+        .dark-mode-toggle :global(.sun) {
+          display: none;
+        }
+
+        :global(.dark-mode) .dark-mode-toggle :global(.sun) {
+          display: block;
+        }
+
+        :global(.dark-mode) .dark-mode-toggle :global(.moon) {
+          display: none;
+        }
         .wrapper {
           /* wrapper to not have the header overlap stuff */
           height: 56px;
@@ -134,6 +199,11 @@ const Header = ({ onSearch, search }) => {
           border: 1px solid #eee;
           left: 0;
           right: 0;
+        }
+		
+		:global(.dark-mode) .searcher {
+			background: #333;
+          	border-color: #444;
         }
 
         .searcher ol {
@@ -148,6 +218,10 @@ const Header = ({ onSearch, search }) => {
 
         .searcher li + li {
           border-top: 1px solid #eee;
+        }
+		
+		:global(.dark-mode) .searcher li + li {
+          	border-color: #444;
         }
 
         .searcher li.active {
@@ -167,6 +241,10 @@ const Header = ({ onSearch, search }) => {
           font-weight: normal;
           color: #333;
           padding: 10px;
+        }
+		
+		:global(.dark-mode) .searcher li button {
+          color: #ccc;
         }
 
         .searcher li.active button {
@@ -188,6 +266,11 @@ const Header = ({ onSearch, search }) => {
           background: #fff;
         }
 
+		:global(.dark-mode) .header {
+			background: #333;
+			border-color: #444;
+		}
+
         .header h1 {
           float: left;
           margin: 0;
@@ -196,6 +279,10 @@ const Header = ({ onSearch, search }) => {
           line-height: 56px;
           font-weight: 400;
         }
+
+		:global(.dark-mode) .header {
+			color: white;
+		}
 
         .search {
           flex: 1;
@@ -210,12 +297,20 @@ const Header = ({ onSearch, search }) => {
           align-items: center;
         }
 
+		:global(.dark-mode) .search-box {
+			background: #444;
+		}
+
         .search-box input[type="text"] {
           background: transparent;
           border: none;
           margin: 0;
           width: 100%;
         }
+
+		:global(.dark-mode) .search-box input[type="text"] {
+			color: #ccc;
+		}
 
         .search-item {
           background: #e0e0e0;
@@ -226,6 +321,10 @@ const Header = ({ onSearch, search }) => {
           margin-left: 10px;
           flex-shrink: 0;
         }
+
+		:global(.dark-mode) .search-item {
+			background: #777;
+		}
 
         .type {
           background: #ccc;
@@ -238,10 +337,19 @@ const Header = ({ onSearch, search }) => {
           font-weight: 600;
         }
 
+		:global(.dark-mode) .type {
+			background: #666;
+			color: #bbb;
+		}
+
         .term {
           padding: 0 5px;
           color: #222;
         }
+
+		:global(.dark-mode) .term {
+			color: #eee;
+		}
 
         .delete-search {
           border: none;
@@ -260,6 +368,14 @@ const Header = ({ onSearch, search }) => {
           color: #000;
           font-weight: bold;
         }
+
+		:global(.dark-mode) .delete-search {
+			color: #aaa;
+		}
+
+		:global(.dark-mode) .delete-search:hover {
+			color: #ccc;
+		}
       `}</style>
     </div>
   );

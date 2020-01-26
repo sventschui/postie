@@ -34,10 +34,20 @@ const client = createClient({
 export default function App() {
     const [search, setSearch] = useState({});
 
+    function setDarkMode(enabled) {
+        if (enabled) {
+            document.body.classList.add('dark-mode');
+            document.body.classList.remove('light-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+            document.body.classList.add('light-mode');
+        }
+    }
+
     return (
         <Provider value={client}>
             <div className="wrapper" >
-                <Header onSearch={setSearch} search={search} />
+                <Header onSetDarkMode={setDarkMode} onSearch={setSearch} search={search} />
                 <Router>
                     <Home path="/" search={search} />
                     <Home path="/:messageId" search={search} />

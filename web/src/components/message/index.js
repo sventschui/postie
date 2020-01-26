@@ -300,6 +300,11 @@ export default function Message({ id }) {
           flex: 1;
           overflow: hidden;
         }
+
+        :global(.dark-mode) .stage {
+            background: #333;
+        }
+
         .mail {
           width: 100%;
           height: 100%;
@@ -309,6 +314,10 @@ export default function Message({ id }) {
           display: flex;
           flex-direction: column;
           width: 100%;
+        }
+
+        :global(.dark-mode) .root {
+            background: #333;
         }
 
         iframe {
@@ -321,6 +330,11 @@ export default function Message({ id }) {
           border-bottom: 1px solid #eee;
           justify-content: space-between;
           padding: 10px;
+        }
+
+        :global(.dark-mode) .meta {
+            color: #ccc;
+            border-color: #444;
         }
 
         .meta-attachments {
@@ -355,6 +369,11 @@ export default function Message({ id }) {
           border-left-width: 0;
           height: auto;
           line-height: 1;
+        }
+
+        :global(.dark-mode) .device-selection label {
+            border-color: #444;
+            color: #ccc;
         }
 
         .device-selection label:last-of-type {
@@ -414,6 +433,11 @@ export default function Message({ id }) {
           background: #eee;
           border-radius: 5px;
           padding: 5px;
+        }
+
+        :global(.dark-mode) .emailAddress {
+            background: #404040;
+            color: #ccc;
         }
       `}</style>
     </div>
