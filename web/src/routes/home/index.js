@@ -17,14 +17,19 @@ function formatDate(dateStr) {
 }
 
 const Home = ({ messageId, search }) => {
-  const [after, setAfter] = useState(
-    "bWVzc2FnZTo1ZTI5NjBhZWI1NmExNzJhZTQyYjYyNzI="
-  );
+  const [after, setAfter] = useState(null);
 
   let [result] = useQuery(
     {
       query: `query Q($after: String, $to: String, $subject: String, $text: String) {
-		messages(first: 20, after: $after, to: $to, subject: $subject, text: $text) {
+		messages(
+			first: 20,
+			after: $after,
+			to: $to,
+			subject: $subject,
+			text: $text,
+			order: { field: DATE, direction: DESC }
+		) {
 			__typename
 			pageInfo {
 				__typename
@@ -45,7 +50,7 @@ const Home = ({ messageId, search }) => {
 						__typename
 						text
 					}
-					dateReceived
+					dateSent
 				}
 			}
 		}
@@ -73,7 +78,7 @@ const Home = ({ messageId, search }) => {
                       {message.from && message.from.text.replace(/<.+@.+>/, "")}
                     </span>
                     <span className="date">
-                      {formatDate(message.dateReceived)}
+                      {formatDate(message.dateSent)}
                     </span>
                   </span>
                   <span className="to">

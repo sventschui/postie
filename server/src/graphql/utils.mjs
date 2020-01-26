@@ -44,11 +44,10 @@ export async function applyPagination(totalCount, query, first, last) {
     }
 
     if (limit) {
-      console.log('limit()')
       query.limit(limit);
     }
 
-    resultCount = await query.clone().count();
+    resultCount = await query.clone().count({});
   }
 
   let itemsPromise;
@@ -101,6 +100,7 @@ export function querySortById(collection, inFilter, before, after, direction) {
     };
   }
 
+  console.log('sort', [['_id', direction === 'ASC' ? 1 : -1]]);
   return collection.find(filter).sort([['_id', direction === 'ASC' ? 1 : -1]]);
 }
 
@@ -109,9 +109,10 @@ export async function querySortBy(collection, inFilter, field, before, after, di
   const limits = {};
   const ors = [];
   if (before) {
+    const { objectId } = parseCursor(before);
     const op = direction === 'ASC' ? '$lt' : '$gt';
     const beforeObject = await collection.findOne({
-      _id: ObjectId(before.value),
+      _id: objectId,
     }, {
       fields: {
         [field]: 1,
@@ -127,9 +128,10 @@ export async function querySortBy(collection, inFilter, field, before, after, di
   }
 
   if (after) {
+    const { objectId } = parseCursor(after);
     const op = direction === 'ASC' ? '$gt' : '$lt';
     const afterObject = await collection.findOne({
-      _id: ObjectId(after.value),
+      _id: objectId,
     }, {
       fields: {
         [field]: 1,
@@ -139,7 +141,7 @@ export async function querySortBy(collection, inFilter, field, before, after, di
     ors.push(
       {
         [field]: afterObject[field],
-        _id: { [op]: ObjectId(after.value) },
+        _id: { [op]: objectId },
       },
     );
   }
@@ -155,5 +157,6 @@ export async function querySortBy(collection, inFilter, field, before, after, di
     };
   }
 
+  console.log('sort', JSON.stringify([[field, direction === 'ASC' ? 1 : -1], ['_id', direction === 'ASC' ? 1 : -1]], null, 2));
   return collection.find(filter).sort([[field, direction === 'ASC' ? 1 : -1], ['_id', direction === 'ASC' ? 1 : -1]]);
 }

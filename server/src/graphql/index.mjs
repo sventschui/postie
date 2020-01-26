@@ -10,6 +10,15 @@ const typeDefs = gql`
       message(id: ID!): Message
   }
 
+  type Subscription {
+      # TODO: The UI needs to update all cached queries, not only the active one
+      # or it needs to drop cache on search term change
+      # TODO: How to handle order on the UI? I.e. where to insert these messages
+      # When sorting by ID we need to parse it (base64'message:{id}')
+      messagesAdded: [Message!]!
+      messagesDeleted: [ID!]!
+  }
+
   enum OrderDirection {
       ASC
       DESC
@@ -19,6 +28,7 @@ const typeDefs = gql`
       ID
       FROM
       SUBJECT
+      DATE
   }
 
   input MessageOrder {
@@ -77,6 +87,7 @@ const typeDefs = gql`
 const fields = {
     FROM: 'from',
     SUBJECT: 'subject',
+    DATE: 'headers.date',
 };
 
 // A map of functions which return data for the schema.
@@ -145,7 +156,7 @@ const resolvers = {
         if (!order || order.field === 'ID') {
             query = querySortById(messages, filter, before, after, order ? order.direction : 'ASC');
         } else {
-            query = querySortBy(messages, filter, fields[order.field], before, after, order.direction)
+            query = await querySortBy(messages, filter, fields[order.field], before, after, order.direction)
         }
 
         const totalCount = await messages.count({});

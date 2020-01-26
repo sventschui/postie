@@ -5,13 +5,13 @@ function pad(num) {
   return `${num}`.padStart(2, "0");
 }
 
-const MailEntry = ({ sender, subject, preheader, dateReceived }) => (
+const MailEntry = ({ sender, subject, preheader, dateSent }) => (
   <div className="mail">
     <div className="meta">
       <i className="unread" />
       <p className="sender">{sender}</p>
-      <span className="received">{`${pad(dateReceived.getHours())}:${pad(
-        dateReceived.getMinutes()
+      <span className="received">{`${pad(dateSent.getHours())}:${pad(
+        dateSent.getMinutes()
       )}`}</span>
       <i className="caret" />
     </div>

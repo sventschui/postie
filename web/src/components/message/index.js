@@ -84,7 +84,7 @@ export default function Message({ id }) {
                 }
                 html
                 text
-                dateReceived
+                dateSent
                 attachments {
                     attachmentId
                     filename
@@ -182,7 +182,7 @@ export default function Message({ id }) {
               subject={message.subject}
               // TODO: message.text includes img alt tags, we don't want this in the preheader
               preheader={message.text}
-              dateReceived={new Date(message.dateReceived)}
+              dateSent={new Date(message.dateSent)}
             />
           </div>
         </div>
