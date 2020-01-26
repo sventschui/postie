@@ -110,6 +110,7 @@ const Home = ({ messageId, search }) => {
             position: relative;
             min-height: 100%;
             border-right: 1px solid #eee;
+			overflow: hidden; /* prevent margin from breaking out */
           }
           .loading-overlay {
             position: absolute;
@@ -176,6 +177,7 @@ const Home = ({ messageId, search }) => {
 
           button {
             margin: 0 auto;
+            margin-top: 10px;
             margin-bottom: 10px;
             display: block;
           }
@@ -200,6 +202,18 @@ const Home = ({ messageId, search }) => {
           overflow: auto;
           flex: 0 0 auto;
         }
+
+		@media (min-width: 600px) {
+			.list {
+				width: 250px;
+			}
+		}
+
+		@media (min-width: 800px) {
+			.list {
+				width: 300px;
+			}
+		}
       `}</style>
     </div>
   );
