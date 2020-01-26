@@ -39,7 +39,6 @@ export async function applyPagination(totalCount, query, first, last) {
     }
 
     if (skip) {
-      console.log('skip()')
       query.skip(skip);
     }
 
@@ -100,7 +99,6 @@ export function querySortById(collection, inFilter, before, after, direction) {
     };
   }
 
-  console.log('sort', [['_id', direction === 'ASC' ? 1 : -1]]);
   return collection.find(filter).sort([['_id', direction === 'ASC' ? 1 : -1]]);
 }
 
@@ -157,6 +155,5 @@ export async function querySortBy(collection, inFilter, field, before, after, di
     };
   }
 
-  console.log('sort', JSON.stringify([[field, direction === 'ASC' ? 1 : -1], ['_id', direction === 'ASC' ? 1 : -1]], null, 2));
   return collection.find(filter).sort([[field, direction === 'ASC' ? 1 : -1], ['_id', direction === 'ASC' ? 1 : -1]]);
 }

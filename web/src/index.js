@@ -21,16 +21,80 @@ import Header from "./components/header";
 // Code-splitting is automated for routes
 import Home from "./routes/home";
 
-const subscriptionClient = new SubscriptionClient("ws://localhost:8025/graphql", {
-  reconnect: true,
-  connectionParams: {
+export const MESSAGES_QUERY = `query Q($after: String, $to: String, $subject: String, $text: String) {
+	messages(
+		first: 20,
+		after: $after,
+		to: $to,
+		subject: $subject,
+		text: $text,
+		order: { field: DATE, direction: DESC }
+	) {
+		__typename
+		pageInfo {
+			__typename
+			endCursor
+			hasNextPage
+		}
+		edges {
+			__typename
+			node {
+				__typename
+				id
+				subject
+				from {
+					__typename
+					text
+				}
+				to {
+					__typename
+					text
+				}
+				dateSent
+			}
+		}
+	}
+}`;
+
+const subscriptionClient = new SubscriptionClient(
+  "ws://localhost:8025/graphql",
+  {
+    reconnect: true,
+    connectionParams: {}
   }
-});
+);
 
 const cache = cacheExchange({
   resolvers: {
     Query: {
       messages: relayPagination()
+    }
+  },
+  updates: {
+    Subscription: {
+      messagesAdded: ({ messagesAdded }, _args, cache) => {
+        cache.updateQuery({ query: MESSAGES_QUERY, variables: {} }, data => {
+          if (data != null) {
+            messagesAdded
+              .slice()
+              .reverse()
+              .forEach(message => {
+                data.messages.edges.unshift({
+                  __typename: "MessageEdge",
+                  id: String(new Date().getTime()),
+                  node: message
+                });
+              });
+            if (typeof data.messages.totalCount === "number") {
+              data.messages.totalCount += messagesAdded.length;
+            }
+            data.messages.pageInfo.startCursor = messagesAdded[0].id;
+            return data;
+          }
+
+          return null;
+        });
+      }
     }
   },
   keys: {

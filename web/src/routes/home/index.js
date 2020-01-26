@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { useState, useRef, useEffect } from "preact/hooks";
-import { useQuery } from "@urql/preact";
+import { useQuery, useSubscription } from "@urql/preact";
 import { Link } from "preact-router/match";
 import Message from "../../components/message";
 import Loading from "../../components/loading";
@@ -16,45 +16,62 @@ function formatDate(dateStr) {
   )}:${pad(date.getMinutes())}`;
 }
 
+export const MESSAGES_QUERY = `query Q($after: String, $to: String, $subject: String, $text: String) {
+	messages(
+		first: 20,
+		after: $after,
+		to: $to,
+		subject: $subject,
+		text: $text,
+		order: { field: DATE, direction: DESC }
+	) {
+		__typename
+		pageInfo {
+			__typename
+			endCursor
+			hasNextPage
+		}
+		edges {
+			__typename
+			node {
+				__typename
+				id
+				subject
+				from {
+					__typename
+					text
+				}
+				to {
+					__typename
+					text
+				}
+				dateSent
+			}
+		}
+	}
+}`;
+
 const Home = ({ messageId, search }) => {
   const [after, setAfter] = useState(null);
 
+  useSubscription(
+    {
+      query: `subscription S {
+	  messagesAdded {
+		  __typename
+		  id
+		  subject
+		  from { text }
+		  to { text }
+		  dateSent
+	  }
+  }`
+    }
+  );
+
   let [result] = useQuery(
     {
-      query: `query Q($after: String, $to: String, $subject: String, $text: String) {
-		messages(
-			first: 20,
-			after: $after,
-			to: $to,
-			subject: $subject,
-			text: $text,
-			order: { field: DATE, direction: DESC }
-		) {
-			__typename
-			pageInfo {
-				__typename
-				endCursor
-				hasNextPage
-			}
-			edges {
-				__typename
-				node {
-					__typename
-					id
-					subject
-					from {
-						__typename
-						text
-					}
-					to {
-						__typename
-						text
-					}
-					dateSent
-				}
-			}
-		}
-	}`,
+      query: MESSAGES_QUERY,
       variables: { after, ...search }
     },
     [after]
@@ -77,9 +94,7 @@ const Home = ({ messageId, search }) => {
                     <span className="from">
                       {message.from && message.from.text.replace(/<.+@.+>/, "")}
                     </span>
-                    <span className="date">
-                      {formatDate(message.dateSent)}
-                    </span>
+                    <span className="date">{formatDate(message.dateSent)}</span>
                   </span>
                   <span className="to">
                     {message.to &&
@@ -115,14 +130,13 @@ const Home = ({ messageId, search }) => {
             position: relative;
             min-height: 100%;
             border-right: 1px solid #eee;
-			overflow: hidden; /* prevent margin from breaking out */
+            overflow: hidden; /* prevent margin from breaking out */
           }
 
-		
-			:global(.dark-mode) .root {
-				border-color: #444;
-				background: #333;
-			}
+          :global(.dark-mode) .root {
+            border-color: #444;
+            background: #333;
+          }
 
           .loading-overlay {
             position: absolute;
@@ -161,11 +175,10 @@ const Home = ({ messageId, search }) => {
             color: #333;
           }
 
-		
-			:global(.dark-mode) li :global(a) {
-				border-color: #444;
-				color: #ccc;
-			}
+          :global(.dark-mode) li :global(a) {
+            border-color: #444;
+            color: #ccc;
+          }
 
           .from-date {
             display: flex;
@@ -178,9 +191,9 @@ const Home = ({ messageId, search }) => {
             flex: 1;
           }
 
-		  .to {
-			  font-size: 11px;
-		  }
+          .to {
+            font-size: 11px;
+          }
 
           .date {
             flex-shrink: 0;
@@ -221,17 +234,17 @@ const Home = ({ messageId, search }) => {
           flex: 0 0 auto;
         }
 
-		@media (min-width: 600px) {
-			.list {
-				width: 250px;
-			}
-		}
+        @media (min-width: 600px) {
+          .list {
+            width: 250px;
+          }
+        }
 
-		@media (min-width: 800px) {
-			.list {
-				width: 300px;
-			}
-		}
+        @media (min-width: 800px) {
+          .list {
+            width: 300px;
+          }
+        }
       `}</style>
     </div>
   );

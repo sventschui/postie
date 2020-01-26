@@ -21,7 +21,7 @@ export function onMessagesDeleted(ids) {
 
 setInterval(() => {
     onMessagesAdded([{ _id: ObjectID(), subject: 'test', headers: { date: new Date() }, from: { text: 'test' }, to: [{ text: 'test' }] }])
-}, 1000)
+}, 3000)
 
 // The GraphQL schema
 const typeDefs = gql`

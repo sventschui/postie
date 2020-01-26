@@ -155,6 +155,12 @@ export default function Message({ id }) {
   const [setNode2, stageEntry] = useResizeObserver();
   setNode2(stage.current);
 
+  if (!message) {
+      return (
+          <div>Not found!</div>
+      )
+  }
+
   let scaleWidth = 1;
   let scaleHeight = 1;
   if (stageEntry.contentRect && viewportEntry.contentRect) {
