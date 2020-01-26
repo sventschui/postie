@@ -360,6 +360,10 @@ export default function Message({ id }) {
           border-bottom: 1px solid #eee;
         }
 
+        :global(.dark-mode) .device-selection {
+            border-color: #444;
+        }
+
         .device-selection label {
           padding: 10px;
           font-size: 11px;
