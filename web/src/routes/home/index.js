@@ -16,28 +16,10 @@ function formatDate(dateStr) {
   )}:${pad(date.getMinutes())}`;
 }
 
-function usePrevious(value) {
-	// The ref object is a generic container whose current property is mutable ...
-	// ... and can hold any value, similar to an instance property on a class
-	const ref = useRef();
-	
-	// Store current value in ref
-	useEffect(() => {
-	  ref.current = value;
-	}, [value]); // Only re-run if value changes
-	
-	// Return previous value (happens before update in useEffect above)
-	return ref.current;
-  }
-
 const Home = ({ messageId, search }) => {
   const [after, setAfter] = useState(
     "bWVzc2FnZTo1ZTI5NjBhZWI1NmExNzJhZTQyYjYyNzI="
   );
-
-  const prevSearch = usePrevious(search);
-
-  console.log({ prevSearch, search });
 
   let [result] = useQuery(
     {
@@ -77,7 +59,7 @@ const Home = ({ messageId, search }) => {
   window.result = result;
 
   function renderList() {
-	if (result.error) return <p>Oh no...</p>;
+    if (result.error) return <p>Oh no...</p>;
 
     return (
       <div className="root">
@@ -93,6 +75,12 @@ const Home = ({ messageId, search }) => {
                     <span className="date">
                       {formatDate(message.dateReceived)}
                     </span>
+                  </span>
+                  <span className="to">
+                    {message.to &&
+                      message.to
+                        .map(to => to.text.replace(/<.+@.+>/, ""))
+                        .join(", ")}
                   </span>
                   <span className="subject">{message.subject}</span>
                 </Link>
@@ -110,55 +98,55 @@ const Home = ({ messageId, search }) => {
             load more
           </button>
         )}
-		{result.fetching ? (
-			<div className={`loading-overlay ${result.data ? 'has-data' : ''}`}>
-				<div className="loader" >
-					<Loading color={result.data ? 'white' : 'purple'} />
-				</div>
-			</div>
-		) : null}
-		<style jsx>{`
-		.root {
-			position: relative;
-			min-height: 100%;
+        {result.fetching ? (
+          <div className={`loading-overlay ${result.data ? "has-data" : ""}`}>
+            <div className="loader">
+              <Loading color={result.data ? "white" : "purple"} />
+            </div>
+          </div>
+        ) : null}
+        <style jsx>{`
+          .root {
+            position: relative;
+            min-height: 100%;
             border-right: 1px solid #eee;
-		}
-		.loading-overlay {
-			position: absolute;
-			top: 0;
-			right: 0;
-			left: 0;
-			bottom: 0;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-		}
+          }
+          .loading-overlay {
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
 
-		.loader {
-			position: fixed;
-			top: 50%;
-		}
+          .loader {
+            position: fixed;
+            top: 50%;
+          }
 
-		.loading-overlay.has-data {
-			background: rgba(0,0,0,.2)
-		}
+          .loading-overlay.has-data {
+            background: rgba(0, 0, 0, 0.2);
+          }
           ol {
             list-style-type: none;
             margin: 0;
             padding: 0;
-		  }
-		  
-		  li {
-			margin: 0;
-		  }
+          }
+
+          li {
+            margin: 0;
+          }
 
           li :global(a) {
             display: flex;
-			flex-direction: column;
+            flex-direction: column;
             padding: 10px;
             border-bottom: 1px solid #eee;
             color: #333;
-		  }
+          }
 
           .from-date {
             display: flex;
@@ -170,6 +158,10 @@ const Home = ({ messageId, search }) => {
             font-size: 12px;
             flex: 1;
           }
+
+		  .to {
+			  font-size: 11px;
+		  }
 
           .date {
             flex-shrink: 0;
