@@ -383,7 +383,6 @@ export default function Message({ id }) {
         }
 
         .meta button {
-          font-site: 12px;
           height: 30px;
           line-height: 30px;
           padding: 0 10px;
