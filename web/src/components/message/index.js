@@ -118,10 +118,13 @@ export default function Message({ id }) {
 
   function setInnerHtml(ref) {
     if (ref && message.html) {
+      // TODO: The setTimeout could potentially lead to race conditions
       // setTimeout to wait for preact to update the DOM
       setTimeout(() => {
-        ref.contentDocument.open();
-        ref.contentDocument.write(message.html);
+          if (ref.contentDocument) {
+            ref.contentDocument.open();
+            ref.contentDocument.write(message.html);
+          }
       }, 0);
     }
   }
