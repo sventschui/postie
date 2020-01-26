@@ -32,7 +32,7 @@ const client = createClient({
 });
 
 export default function App() {
-    const [search, setSearch] = useState({});
+    const [search, setSearch] = useState({ subject: 'test'});
 
     return (
         <Provider value={client}>

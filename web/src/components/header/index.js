@@ -28,12 +28,23 @@ const Header = ({ onSearch, search }) => {
         <h1>postie</h1>
         <div className="search">
           <div className="search-box">
-            {Object.entries(search).map(([t, term]) => (
-              <span className="search-item">
-                <span className="type">{t}</span>
-                <span className="term">{term}</span>
-              </span>
-            ))}
+            {Object.entries(search).map(
+              ([t, term]) =>
+                term && (
+                  <span className="search-item">
+                    <span className="type">{t}</span>
+                    <span className="term">{term}</span>
+                    <button
+                      onClick={() => {
+                        onSearch({ ...search, [t]: null });
+                      }}
+                      className="delete-search"
+                    >
+                      x
+                    </button>
+                  </span>
+                )
+            )}
             <input
               ref={input}
               type="text"
@@ -213,6 +224,7 @@ const Header = ({ onSearch, search }) => {
           display: flex;
           align-items: stretch;
           margin-left: 10px;
+          flex-shrink: 0;
         }
 
         .type {
@@ -229,6 +241,24 @@ const Header = ({ onSearch, search }) => {
         .term {
           padding: 0 5px;
           color: #222;
+        }
+
+        .delete-search {
+          border: none;
+          background: transparent;
+          color: #333;
+          padding: 5px;
+          margin: 0;
+          display: block;
+          height: auto;
+          line-height: 1;
+          font-weight: normal;
+          font-size: 10px;
+        }
+
+        .delete-search:hover {
+          color: #000;
+          font-weight: bold;
         }
       `}</style>
     </div>
