@@ -23,7 +23,7 @@ const MailEntry = ({ sender, subject, preheader, dateReceived }) => (
     </p>
     <style jsx>{`
       * {
-        letter-spacing: normal; // reset milligram
+        letter-spacing: normal; /* reset milligram */
       }
       .mail {
         text-align: inherit;
