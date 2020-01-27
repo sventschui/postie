@@ -4,17 +4,15 @@ import createGraphqlServer from './graphql/index.mjs';
 import storeMailInDb from './store-mail-in-db.mjs';
 
 const { SMTPServer: SmtpServer } = smtpServerModule;
-const { MongoClient, GridFSBucket } = mongodbModule;
+const { GridFSBucket } = mongodbModule;
 
-(async () => {
-    const mongo = await MongoClient.connect('mongodb://127.0.0.1:27017', { useUnifiedTopology: true });
-
+export function createServers({ mongo, ApolloServer }) {
     const db = mongo.db('mail');
 
     const messages = db.collection('messages');
     const attachmentsBucket = new GridFSBucket(db, { bucketName: 'attachments', chunkSizeBytes: 1024 * 1024 })
 
-    new SmtpServer({
+    const smtpServer = new SmtpServer({
         secure: false,
         name: 'postie',
         banner: 'postie v1.0.0-alpha-1',
@@ -33,13 +31,9 @@ const { MongoClient, GridFSBucket } = mongodbModule;
                 callback(e);
             }
         }
-    })
-        .listen(1030);
-
-
-
-    createGraphqlServer({ messages, attachmentsBucket }).listen(8025).then(({ url, subscriptionsUrl }) => {
-        console.log(`🚀 Server ready at ${url} / ${subscriptionsUrl}`);
     });
-})();
 
+    const graphqlServer = createGraphqlServer({ ApolloServer, messages, attachmentsBucket });
+
+    return { smtpServer, graphqlServer };
+}

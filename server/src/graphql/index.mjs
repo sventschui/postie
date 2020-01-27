@@ -4,7 +4,7 @@ import m from 'mongodb';
 
 const { ObjectID } = m;
 
-const { ApolloServer, gql, PubSub } = apolloServerModule;
+const { ApolloServer: DefaultApolloServer, gql, PubSub } = apolloServerModule;
 
 const pubsub = new PubSub();
 
@@ -199,8 +199,8 @@ const resolvers = {
   },
 };
 
-export default function createServer({ messages, attachmentsBucket }) {
-    const server = new ApolloServer({
+export default function createServer({ ApolloServer, messages, attachmentsBucket }) {
+    const server = new (ApolloServer || DefaultApolloServer)({
         typeDefs,
         resolvers,
         cors: true,

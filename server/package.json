@@ -1,14 +1,15 @@
 {
-  "name": "server",
+  "name": "@postie/server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/index.mjs",
   "license": "MIT",
   "scripts": {
-    "dev": "nodemon --watch src --experimental-modules src/index.mjs",
+    "dev": "nodemon --watch src --experimental-modules src/dev.mjs",
     "mailhog2postie": "nodemon --watch src --experimental-modules src/mailhog2postie.mjs"
   },
   "dependencies": {
     "apollo-server": "^2.9.16",
+    "graphql": "^14.6.0",
     "html-to-text": "^5.1.1",
     "mailparser": "^2.7.7",
     "mongodb": "^3.5.2",

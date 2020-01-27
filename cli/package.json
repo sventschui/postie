@@ -1,0 +1,19 @@
+{
+  "name": "@postie/cli",
+  "version": "1.0.0",
+  "main": "src/index.mjs",
+  "license": "MIT",
+  "scripts": {
+    "dev": "nodemon --watch src --experimental-modules src/index.mjs start"
+  },
+  "dependencies": {
+    "@postie/server": "1.0.0",
+    "@postie/web": "1.0.0",
+    "apollo-server-koa": "^2.9.16",
+    "koa": "^2.11.0",
+    "sade": "^1.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
+}
