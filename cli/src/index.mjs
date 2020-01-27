@@ -1,6 +1,8 @@
+#!/usr/bin/env node --experimental-modules
 import sade from 'sade';
 import mongodbModule from 'mongodb';
-import { createServers } from '@postie/server';
+import { createServers } from '@postie_/server';
+import postieWebPath from '@postie_/web';
 import apolloServerModule from 'apollo-server-koa';
 import Koa from 'koa';
 import Router from 'koa-router';
@@ -68,14 +70,7 @@ prog
 
         graphqlServer.applyMiddleware({ app });
 
-        // TODO: create a middleware in @postie/web/src/middleware.js that serves the postie GUI
-        let webPath = join(__dirname, '../node_modules/@postie/web/build');
-        if (!fs.existsSync(webPath)) {
-            console.warn('Falling back to node_modules of yarn workspace. Should only happen during development!');
-            webPath = join(__dirname, '../../node_modules/@postie/web/build');
-        }
-
-        app.use(koaStatic(webPath));
+        app.use(koaStatic(postieWebPath));
 
         const router = new Router();
 
@@ -84,7 +79,7 @@ prog
         });
 
         router.get('*', (ctx) => {
-            return koaSend(ctx, 'index.html', { root: webPath });
+            return koaSend(ctx, 'index.html', { root: postieWebPath });
         });
 
         app.use(router.routes());

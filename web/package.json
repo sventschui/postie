@@ -1,8 +1,8 @@
 {
-  "private": true,
-  "name": "@postie/web",
-  "version": "1.0.0",
+  "name": "@postie_/web",
+  "version": "1.0.0-alpha.2",
   "license": "MIT",
+  "main": "index.js",
   "scripts": {
     "start": "per-env",
     "start:production": "npm run -s serve",
@@ -14,7 +14,8 @@
     "test": "jest"
   },
   "files": [
-    "build"
+    "build",
+    "index.js"
   ],
   "eslintConfig": {
     "extends": "eslint-config-synacor"

@@ -1,8 +1,11 @@
 {
-  "name": "@postie/server",
-  "version": "1.0.0",
+  "name": "@postie_/server",
+  "version": "1.0.0-alpha.2",
   "main": "src/index.mjs",
   "license": "MIT",
+  "files": [
+    "src"
+  ],
   "scripts": {
     "dev": "nodemon --watch src --experimental-modules src/dev.mjs",
     "mailhog2postie": "nodemon --watch src --experimental-modules src/mailhog2postie.mjs"

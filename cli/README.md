@@ -1,3 +1,3 @@
-# @postie_/web
+# @postie_/cli
 
 See https://github.com/sventschui/postie
