@@ -1,0 +1,17 @@
+{
+    "settings": {
+        "react": {
+            "pragma": "h"
+        }
+    },
+    "extends": [
+        "airbnb",
+        "prettier",
+        "prettier/react",
+        "prettier/standard"
+    ],
+    "rules": {
+        "react/jsx-no-bind": 0,
+        "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }]
+    }
+}

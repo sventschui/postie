@@ -11,6 +11,10 @@
     "@postie/web": "1.0.0",
     "apollo-server-koa": "^2.9.16",
     "koa": "^2.11.0",
+    "koa-router": "^8.0.6",
+    "koa-send": "^5.0.0",
+    "koa-static": "^5.0.0",
+    "mongodb-memory-server": "^6.2.4",
     "sade": "^1.7.0"
   },
   "devDependencies": {

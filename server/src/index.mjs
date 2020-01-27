@@ -6,9 +6,7 @@ import storeMailInDb from './store-mail-in-db.mjs';
 const { SMTPServer: SmtpServer } = smtpServerModule;
 const { GridFSBucket } = mongodbModule;
 
-export function createServers({ mongo, ApolloServer }) {
-    const db = mongo.db('mail');
-
+export function createServers({ db, ApolloServer }) {
     const messages = db.collection('messages');
     const attachmentsBucket = new GridFSBucket(db, { bucketName: 'attachments', chunkSizeBytes: 1024 * 1024 })
 

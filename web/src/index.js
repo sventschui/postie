@@ -63,7 +63,7 @@ export const MESSAGES_QUERY = `query Q($after: String, $to: String, $subject: St
 }`;
 
 const subscriptionClient = new SubscriptionClient(
-  "ws://localhost:8025/graphql",
+  `ws://${window.location.host}/graphql`,
   {
     reconnect: true,
     connectionParams: {}
@@ -111,7 +111,7 @@ const cache = cacheExchange({
 });
 
 const client = createClient({
-  url: "http://localhost:8025/graphql",
+  url: "/graphql",
   exchanges: [
     dedupExchange,
     cache,
