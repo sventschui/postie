@@ -220,7 +220,7 @@ const Home = ({ messageId, search }) => {
   return (
     <div className="home">
       <div className="list">{renderList()}</div>
-      <Message id={messageId} />
+      {messageId && <Message id={messageId} />}
       <style jsx>{`
         .home {
           display: flex;

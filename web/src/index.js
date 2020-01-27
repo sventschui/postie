@@ -12,14 +12,20 @@ import { cacheExchange } from "@urql/exchange-graphcache";
 import { relayPagination } from "@urql/exchange-graphcache/extras";
 import { SubscriptionClient } from "subscriptions-transport-ws";
 
-if (process.env.NODE_ENV === "development") {
-  require("preact/debug");
-}
-
 import Header from "./components/header";
 
 // Code-splitting is automated for routes
 import Home from "./routes/home";
+
+if (process.env.NODE_ENV === "development") {
+  require("preact/debug");
+}
+
+let ws;
+
+if (typeof window === "undefined") {
+  ws = require("ws");
+}
 
 export const MESSAGES_QUERY = `query Q($after: String, $to: String, $subject: String, $text: String) {
 	messages(
@@ -61,7 +67,8 @@ const subscriptionClient = new SubscriptionClient(
   {
     reconnect: true,
     connectionParams: {}
-  }
+  },
+  ws
 );
 
 const cache = cacheExchange({
