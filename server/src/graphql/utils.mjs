@@ -5,6 +5,7 @@
  // TODO: write tests for these methods...
 
 import mongodbModule from 'mongodb';
+import delve from 'dlv';
 
 const { ObjectID } = mongodbModule;
 
@@ -61,6 +62,7 @@ export async function applyPagination(totalCount, query, first, last) {
   return {
     getItems,
     pageInfo: {
+      // TODO: hasNextPage only works when using first, hasPreviousPage only works when using last
       hasNextPage: !!first && resultCount >= first,
       hasPreviousPage: !!last && resultCount >= last,
       async startCursor() {
@@ -106,9 +108,10 @@ export async function querySortBy(collection, inFilter, field, before, after, di
   let filter = { ...inFilter };
   const limits = {};
   const ors = [];
+  const ope = direction === 'ASC' ? '$lte' : '$gte';
+  const op = direction === 'ASC' ? '$lt' : '$gt';
   if (before) {
     const { objectId } = parseCursor(before);
-    const op = direction === 'ASC' ? '$lt' : '$gt';
     const beforeObject = await collection.findOne({
       _id: objectId,
     }, {
@@ -116,10 +119,10 @@ export async function querySortBy(collection, inFilter, field, before, after, di
         [field]: 1,
       },
     });
-    limits[op] = beforeObject[field];
+    limits[ope] = delve(beforeObject, field);
     ors.push(
       {
-        [field]: beforeObject[field],
+        [field]: delve(beforeObject, field),
         _id: { [op]: ObjectId(before.value) },
       },
     );
@@ -127,7 +130,6 @@ export async function querySortBy(collection, inFilter, field, before, after, di
 
   if (after) {
     const { objectId } = parseCursor(after);
-    const op = direction === 'ASC' ? '$gt' : '$lt';
     const afterObject = await collection.findOne({
       _id: objectId,
     }, {
@@ -135,10 +137,10 @@ export async function querySortBy(collection, inFilter, field, before, after, di
         [field]: 1,
       },
     });
-    limits[op] = afterObject[field];
+    limits[ope] = delve(afterObject, field);
     ors.push(
       {
-        [field]: afterObject[field],
+        [field]: delve(afterObject, field),
         _id: { [op]: objectId },
       },
     );
