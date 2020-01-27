@@ -25,24 +25,18 @@ export const MESSAGES_QUERY = `query Q($after: String, $to: String, $subject: St
 		text: $text,
 		order: { field: DATE, direction: DESC }
 	) {
-		__typename
 		pageInfo {
-			__typename
 			endCursor
 			hasNextPage
 		}
 		edges {
-			__typename
 			node {
-				__typename
 				id
 				subject
 				from {
-					__typename
 					text
 				}
 				to {
-					__typename
 					text
 				}
 				dateSent
