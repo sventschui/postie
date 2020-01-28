@@ -2,12 +2,7 @@
 
 postie is a small SMTP server for development purposes. It will provide you with a simple web UI where you can view the mails delivered to postie.
 
-## Open points
-
-- Allow the deletion of single messages and all messages matching the current search criteria
-- Target the currently active `MessageConncetion` instead of the one without filters in the subscription updater function.
-- Add a fallback for the websockets used in GQL subscriptions
-- Think about invalidateing graphcache when changing search criterias as subscriptions might only target the currently displayed `MessageConnection`.
+![postie-1 0 0-alpha 4](https://user-images.githubusercontent.com/512692/73295927-e822fc80-4208-11ea-96fb-a8401f665822.jpg)
 
 ## Running
 
