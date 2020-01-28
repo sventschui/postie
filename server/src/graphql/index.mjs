@@ -167,6 +167,14 @@ const fields = {
   DATE: "headers.date"
 };
 
+async function deleteMessage(messages, attachmentsBucket, { _id, attachments }) {
+    await Promise.all([
+        messages.deleteOne({ _id }),
+        ...(attachments ? attachments.map(({ attachmentId }) => attachmentsBucket.delete(attachmentId)) : []),
+    ]);
+}
+
+
 // A map of functions which return data for the schema.
 const resolvers = {
   Subscription: {
@@ -178,14 +186,9 @@ const resolvers = {
     }
   },
   Mutation: {
-    async deleteMessages(parent, { input }, { messages }) {
+    async deleteMessages(parent, { input }, { messages, attachmentsBucket }) {
       // ObjectId to limit the deletion for messages that where stored before just now
       const currentObjectId = new ObjectId();
-
-      console.log({
-        _id: { $lt: currentObjectId },
-        ...buildFilter(input)
-      });
 
       // we do a find and delete single items loop here to notify subscription listeneres
       // and return the list of dropped dis
@@ -196,17 +199,16 @@ const resolvers = {
           //  _id: { $lt: currentObjectId },
           ...buildFilter(input)
         })
-        .project({ _id: 1 });
+        .project({ _id: 1, 'attachments.attachmentId': 1 });
 
       let i = 0;
       while (await cursor.hasNext()) {
         const item = await cursor.next();
-        console.log(item);
 
+        deleteMessage(messages, attachmentsBucket, item);
         idsOfIteration.push(formatCursor("message", item._id));
 
         if (i > 10 || !(await cursor.hasNext())) {
-          // TODO: delete item and its attachments
           onMessagesDeleted(idsOfIteration);
           allIds = allIds.concat(idsOfIteration);
           idsOfIteration = [];
@@ -218,12 +220,12 @@ const resolvers = {
 
       return { ids: allIds };
     },
-    async deleteMessage(parent, { input }, { messages }) {
+    async deleteMessage(parent, { input }, { messages, attachmentsBucket }) {
       const { objectId } = parseCursor(input.id);
-      const item = messages.findOne({ _id: objectId });
+      const item = await messages.findOne({ _id: objectId }, { projection: { _id: 1, 'attachments.attachmentId': 1 } });
 
       if (item) {
-        // TODO: delete item and its attachments
+        deleteMessage(messages, attachmentsBucket, item);
         onMessagesDeleted([input.id]);
       }
 
