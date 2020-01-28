@@ -1,8 +1,8 @@
 import { h } from "preact";
 import { useCallback, useLayoutEffect, useState, useRef } from "preact/hooks";
-import { useQuery } from "@urql/preact";
+import { useQuery, useMutation } from "@urql/preact";
 import ResizeObserver from "resize-observer-polyfill";
-import Loading from '../loading';
+import Loading from "../loading";
 import MailEntry from "./mail-entry";
 
 const devices = {
@@ -98,17 +98,30 @@ export default function Message({ id }) {
     }
   });
 
+  const [deleteMutationResult, executeDeleteMutation] = useMutation(
+    `mutation Delete($input: DeleteMessageInput!) { deleteMessage(input: $input) { id } }`
+  );
+
+  function deleteMessage() {
+    if (result.data) {
+      executeDeleteMutation({
+        input: { id: result.data.message.id },
+        search: "todo"
+      });
+    }
+  }
+
   if (result.fetching) {
     return (
       <div>
         <Loading />
         <style jsx>{`
-            div {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                flex: 1;
-            }    
+          div {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+          }
         `}</style>
       </div>
     );
@@ -121,10 +134,10 @@ export default function Message({ id }) {
       // TODO: The setTimeout could potentially lead to race conditions
       // setTimeout to wait for preact to update the DOM
       setTimeout(() => {
-          if (ref.contentDocument) {
-            ref.contentDocument.open();
-            ref.contentDocument.write(message.html);
-          }
+        if (ref.contentDocument) {
+          ref.contentDocument.open();
+          ref.contentDocument.write(message.html);
+        }
       }, 0);
     }
   }
@@ -159,9 +172,7 @@ export default function Message({ id }) {
   setNode2(stage.current);
 
   if (!message) {
-      return (
-          <div>Not found!</div>
-      )
+    return <div>Not found!</div>;
   }
 
   let scaleWidth = 1;
@@ -238,23 +249,31 @@ export default function Message({ id }) {
           </button>
         </div>
       </div>
-      <div className="device-selection">
-        {Object.entries(devices).map(([name, device]) => (
-          <Fragment key={name}>
-            <input
-              key="input"
-              checked={selectedDevice === name}
-              id={`device-${name}`}
-              type="radio"
-              name="device"
-              value={name}
-              onChange={selectDevice}
-            />
-            <label key="label" htmlFor={`device-${name}`}>
-              {device.label}
-            </label>
-          </Fragment>
-        ))}
+      <div className="toolbar">
+        <div className="device-selection">
+          {Object.entries(devices).map(([name, device]) => (
+            <Fragment key={name}>
+              <input
+                key="input"
+                checked={selectedDevice === name}
+                id={`device-${name}`}
+                type="radio"
+                name="device"
+                value={name}
+                onChange={selectDevice}
+              />
+              <label key="label" htmlFor={`device-${name}`}>
+                {device.label}
+              </label>
+            </Fragment>
+          ))}
+        </div>
+
+        <button className="delete-button" onClick={deleteMessage}>
+          <svg width="24" height="24" viewBox="0 0 24 24">
+            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z" />
+          </svg>
+        </button>
       </div>
       <div className="stage" ref={stage}>
         <div
@@ -311,7 +330,7 @@ export default function Message({ id }) {
         }
 
         :global(.dark-mode) .stage {
-            background: #333;
+          background: #333;
         }
 
         .mail {
@@ -326,7 +345,7 @@ export default function Message({ id }) {
         }
 
         :global(.dark-mode) .root {
-            background: #333;
+          background: #333;
         }
 
         iframe {
@@ -342,8 +361,8 @@ export default function Message({ id }) {
         }
 
         :global(.dark-mode) .meta {
-            color: #ccc;
-            border-color: #444;
+          color: #ccc;
+          border-color: #444;
         }
 
         .meta-attachments {
@@ -361,7 +380,7 @@ export default function Message({ id }) {
           padding: 0;
         }
 
-        .device-selection {
+        .toolbar {
           display: flex;
           align-items: center;
           justify-content: center;
@@ -369,8 +388,33 @@ export default function Message({ id }) {
           border-bottom: 1px solid #eee;
         }
 
+        .device-selection {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-left: auto;
+        }
+
+        .delete-button {
+          margin: 0;
+          margin-left: auto;
+          background: transparent;
+          border: none;
+          padding: 5px;
+        }
+
+        .delete-button svg {
+          fill: #999;
+          width: 24px;
+          height: 24px;
+        }
+
+        .delete-button:hover svg {
+          fill: #9b4dca;
+        }
+
         :global(.dark-mode) .device-selection {
-            border-color: #444;
+          border-color: #444;
         }
 
         .device-selection label {
@@ -385,8 +429,8 @@ export default function Message({ id }) {
         }
 
         :global(.dark-mode) .device-selection label {
-            border-color: #444;
-            color: #ccc;
+          border-color: #444;
+          color: #ccc;
         }
 
         .device-selection label:last-of-type {
@@ -449,8 +493,8 @@ export default function Message({ id }) {
         }
 
         :global(.dark-mode) .emailAddress {
-            background: #404040;
-            color: #ccc;
+          background: #404040;
+          color: #ccc;
         }
       `}</style>
     </div>

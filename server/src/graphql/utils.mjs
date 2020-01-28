@@ -110,7 +110,6 @@ export async function querySortBy(collection, inFilter, field, before, after, di
   const ors = [];
   if (before) {
     const { objectId } = parseCursor(before);
-    const ope = direction === 'ASC' ? '$lte' : '$gte';
     const op = direction === 'ASC' ? '$lt' : '$gt';
     const beforeObject = await collection.findOne({
       _id: objectId,
@@ -119,7 +118,7 @@ export async function querySortBy(collection, inFilter, field, before, after, di
         [field]: 1,
       },
     });
-    limits[ope] = delve(beforeObject, field);
+    limits[op] = delve(beforeObject, field);
     ors.push(
       {
         [field]: delve(beforeObject, field),
@@ -130,7 +129,6 @@ export async function querySortBy(collection, inFilter, field, before, after, di
 
   if (after) {
     const { objectId } = parseCursor(after);
-    const ope = direction === 'ASC' ? '$gte' : '$lte';
     const op = direction === 'ASC' ? '$gt' : '$lt';
     const afterObject = await collection.findOne({
       _id: objectId,
@@ -139,7 +137,7 @@ export async function querySortBy(collection, inFilter, field, before, after, di
         [field]: 1,
       },
     });
-    limits[ope] = delve(afterObject, field);
+    limits[op] = delve(afterObject, field);
     ors.push(
       {
         [field]: delve(afterObject, field),
@@ -150,6 +148,7 @@ export async function querySortBy(collection, inFilter, field, before, after, di
 
   if (before || after) {
     filter = {
+      ...inFilter,
       $or: [
         {
           [field]: limits,

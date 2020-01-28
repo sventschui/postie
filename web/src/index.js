@@ -101,8 +101,86 @@ const cache = cacheExchange({
 
           return null;
         });
-      }
-    }
+      },
+      messagesDeleted: ({ messagesDeleted }, _args, cache) => {
+        cache.updateQuery({ query: MESSAGES_QUERY, variables: {} }, data => {
+          if (data != null) {
+            data.messages.edges = data.messages.edges.filter(({ node }) => {
+              return messagesDeleted.ids.indexOf(node.id) === -1;
+            });
+
+            if (typeof data.messages.totalCount === "number") {
+              data.messages.totalCount -= messagesDeleted.ids.length;
+            }
+
+            return data;
+          }
+
+          return null;
+        });
+      },
+    },
+    Mutation: {
+      deleteMessages: ({ deleteMessages }, { input }, cache) => {
+        cache.updateQuery({ query: MESSAGES_QUERY, variables: input }, data => {
+          if (data != null) {
+
+            data.messages.edges = data.messages.edges.filter(({ node }) => {
+              return deleteMessages.ids.indexOf(node.id) === -1;
+            });
+
+            if (typeof data.messages.totalCount === "number") {
+              data.messages.totalCount -= deleteMessages.ids.length;
+            }
+
+            if (data.messages.pageInfo) {
+              data.messages.pageInfo.hasNextPage = false;
+            }
+
+            return data;
+          }
+
+          return null;
+        });
+
+        deleteMessages.ids.forEach((id) => {
+          cache.updateQuery({ query: `query Q($id: ID!) { message(id: $id) { id } }`, variables: { id } }, data => {
+            if (data) {
+              data.message = null;
+            }
+  
+            return data;
+          });
+        });
+      },
+      deleteMessage: ({ deleteMessages }, { input, search }, cache) => {
+        cache.updateQuery({ query: MESSAGES_QUERY, variables: search }, data => {
+          if (data != null) {
+            data.messages.edges = data.messages.edges.filter(({ node }) => {
+              return node.id !== input.id;
+            });
+
+            if (typeof data.messages.totalCount === "number") {
+              data.messages.totalCount -= 1;
+            }
+
+            return data;
+          }
+
+          return null;
+        });
+
+        cache.updateQuery({ query: `query Q($id: ID!) { message(id: $id) { id } }`, variables: { id: input.id } }, data => {
+          console.log(data, data&& data.message);
+
+          if (data) {
+            data.message = null;
+          }
+
+          return data;
+        });
+      },
+    },
   },
   keys: {
     SenderRecipient: () => null,
@@ -112,6 +190,7 @@ const cache = cacheExchange({
 
 const client = createClient({
   url: "/graphql",
+  requestPolicy: 'network-only',
   exchanges: [
     dedupExchange,
     cache,

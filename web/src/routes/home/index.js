@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { useState, useRef, useEffect } from "preact/hooks";
-import { useQuery, useSubscription } from "@urql/preact";
+import { useQuery, useMutation, useSubscription } from "@urql/preact";
 import { Link } from "preact-router/match";
 import Message from "../../components/message";
 import Loading from "../../components/loading";
@@ -25,6 +25,7 @@ export const MESSAGES_QUERY = `query Q($after: String, $to: String, $subject: St
 		text: $text,
 		order: { field: DATE, direction: DESC }
 	) {
+		totalCount
 		pageInfo {
 			endCursor
 			hasNextPage
@@ -48,9 +49,8 @@ export const MESSAGES_QUERY = `query Q($after: String, $to: String, $subject: St
 const Home = ({ messageId, search }) => {
   const [after, setAfter] = useState(null);
 
-  useSubscription(
-    {
-      query: `subscription S {
+  useSubscription({
+    query: `subscription S {
 	  messagesAdded {
 		  __typename
 		  id
@@ -60,8 +60,15 @@ const Home = ({ messageId, search }) => {
 		  dateSent
 	  }
   }`
-    }
-  );
+  });
+
+  useSubscription({
+    query: `subscription S {
+	  messagesDeleted {
+		  ids
+	  }
+  }`
+  });
 
   let [result] = useQuery(
     {
@@ -74,62 +81,126 @@ const Home = ({ messageId, search }) => {
   window.setAfter = setAfter;
   window.result = result;
 
+  const [deleteAllMutationResult, executeDeleteAllMutation] = useMutation(
+    `mutation DeleteAll($input: DeleteMessagesInput!) { deleteMessages(input: $input) { ids } }`
+  );
+
+  function deleteAll() {
+    if (
+      confirm(
+        `Do you really want to delete approx. ${result.data.messages.totalCount} messages?`
+      )
+    )
+      executeDeleteAllMutation({ input: search });
+  }
+
   function renderList() {
     if (result.error) return <p>Oh no...</p>;
 
     return (
-      <div className="root">
-        <ol>
-          {result.data &&
-            result.data.messages.edges.map(({ node: message }) => (
-              <li>
-                <Link href={`/${message.id}`}>
-                  <span className="from-date">
-                    <span className="from">
-                      {message.from && message.from.text.replace(/<.+@.+>/, "")}
-                    </span>
-                    <span className="date">{formatDate(message.dateSent)}</span>
-                  </span>
-                  <span className="to">
-                    {message.to &&
-                      message.to
-                        .map(to => to.text.replace(/<.+@.+>/, ""))
-                        .join(", ")}
-                  </span>
-                  <span className="subject">{message.subject}</span>
-                </Link>
-              </li>
-            ))}
-        </ol>
-        {result.data && result.data.messages.pageInfo.hasNextPage && (
-          <button
-            className="button-outline"
-            disabled={result.fetching}
-            onClick={() => {
-              setAfter(result.data.messages.pageInfo.endCursor);
-            }}
-          >
-            load more
-          </button>
-        )}
-        {result.fetching ? (
-          <div className={`loading-overlay ${result.data ? "has-data" : ""}`}>
-            <div className="loader">
-              <Loading color={result.data ? "white" : "purple"} />
-            </div>
+      <div className="wrapper">
+        {result.data && (
+          <div className="toolbar">
+            <button
+              className="delete-button"
+              disabled={deleteAllMutationResult.fetching}
+              onClick={deleteAll}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM8 9h8v10H8V9zm7.5-5l-1-1h-5l-1 1H5v2h14V4z" />
+              </svg>
+            </button>
           </div>
-        ) : null}
+        )}
+        <div className="root">
+          <ol>
+            {result.data &&
+              result.data.messages.edges.map(({ node: message }) => (
+                <li>
+                  <Link href={`/${message.id}`}>
+                    <span className="from-date">
+                      <span className="from">
+                        {message.from &&
+                          message.from.text.replace(/<.+@.+>/, "")}
+                      </span>
+                      <span className="date">
+                        {formatDate(message.dateSent)}
+                      </span>
+                    </span>
+                    <span className="to">
+                      {message.to &&
+                        message.to
+                          .map(to => to.text.replace(/<.+@.+>/, ""))
+                          .join(", ")}
+                    </span>
+                    <span className="subject">{message.subject}</span>
+                  </Link>
+                </li>
+              ))}
+          </ol>
+          {result.data && result.data.messages.pageInfo.hasNextPage && (
+            <button
+              className="button-outline"
+              disabled={result.fetching}
+              onClick={() => {
+                setAfter(result.data.messages.pageInfo.endCursor);
+              }}
+            >
+              load more
+            </button>
+          )}
+          {result.fetching ? (
+            <div className={`loading-overlay ${result.data ? "has-data" : ""}`}>
+              <div className="loader">
+                <Loading color={result.data ? "white" : "purple"} />
+              </div>
+            </div>
+          ) : null}
+        </div>
+
         <style jsx>{`
-          .root {
-            position: relative;
-            min-height: 100%;
+          .wrapper {
+            height: 100%;
             border-right: 1px solid #eee;
-            overflow: hidden; /* prevent margin from breaking out */
           }
 
-          :global(.dark-mode) .root {
+          :global(.dark-mode) .wrapper {
             border-color: #444;
             background: #333;
+          }
+
+          .toolbar {
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+          }
+
+          :global(.dark-mode) .toolbar {
+            border-color: #444;
+          }
+
+          .delete-button {
+            background: transparent;
+            border: none;
+            margin: 0;
+            padding: 5px;
+          }
+
+          .delete-button svg {
+            fill: #999;
+            width: 24px;
+            height: 24px;
+          }
+
+          .delete-button:hover svg {
+            fill: #9b4dca;
+          }
+
+          .root {
+            position: relative;
+            height: 100%;
+            overflow: auto; /* prevent margin from breaking out */
           }
 
           .loading-overlay {
@@ -224,7 +295,7 @@ const Home = ({ messageId, search }) => {
 
         .list {
           width: 200px;
-          overflow: auto;
+          height: 100%;
           flex: 0 0 auto;
         }
 
