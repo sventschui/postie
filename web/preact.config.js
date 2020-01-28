@@ -12,6 +12,11 @@ export default (config, env, helpers) => {
         path: "/graphql",
         target: "http://localhost:8025"
         // ...any other stuff...
+      },
+      {
+        path: "/attachments",
+        target: "http://localhost:8025"
+        // ...any other stuff...
       }
     ];
   }

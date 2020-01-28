@@ -1,4 +1,4 @@
-import apolloServerModule from "apollo-server";
+import apolloServerModule from "apollo-server-koa";
 import {
   applyPagination,
   querySortById,
@@ -7,10 +7,10 @@ import {
   formatCursor
 } from "./utils.mjs";
 import m from "mongodb";
-import escapeRegex from 'escape-string-regexp';
+import escapeRegex from "escape-string-regexp";
 
 const { ObjectId } = m;
-const { ApolloServer: DefaultApolloServer, gql, PubSub } = apolloServerModule;
+const { ApolloServer, gql, PubSub } = apolloServerModule;
 
 const pubsub = new PubSub();
 
@@ -167,13 +167,20 @@ const fields = {
   DATE: "headers.date"
 };
 
-async function deleteMessage(messages, attachmentsBucket, { _id, attachments }) {
-    await Promise.all([
-        messages.deleteOne({ _id }),
-        ...(attachments ? attachments.map(({ attachmentId }) => attachmentsBucket.delete(attachmentId)) : []),
-    ]);
+async function deleteMessage(
+  messages,
+  attachmentsBucket,
+  { _id, attachments }
+) {
+  await Promise.all([
+    messages.deleteOne({ _id }),
+    ...(attachments
+      ? attachments.map(({ attachmentId }) =>
+          attachmentsBucket.delete(attachmentId)
+        )
+      : [])
+  ]);
 }
-
 
 // A map of functions which return data for the schema.
 const resolvers = {
@@ -199,7 +206,7 @@ const resolvers = {
           //  _id: { $lt: currentObjectId },
           ...buildFilter(input)
         })
-        .project({ _id: 1, 'attachments.attachmentId': 1 });
+        .project({ _id: 1, "attachments.attachmentId": 1 });
 
       let i = 0;
       while (await cursor.hasNext()) {
@@ -222,7 +229,10 @@ const resolvers = {
     },
     async deleteMessage(parent, { input }, { messages, attachmentsBucket }) {
       const { objectId } = parseCursor(input.id);
-      const item = await messages.findOne({ _id: objectId }, { projection: { _id: 1, 'attachments.attachmentId': 1 } });
+      const item = await messages.findOne(
+        { _id: objectId },
+        { projection: { _id: 1, "attachments.attachmentId": 1 } }
+      );
 
       if (item) {
         deleteMessage(messages, attachmentsBucket, item);
@@ -335,17 +345,14 @@ const resolvers = {
   }
 };
 
-export default function createServer({
-  ApolloServer,
-  messages,
-  attachmentsBucket
-}) {
-  const server = new (ApolloServer || DefaultApolloServer)({
+export default function createServer({ messages, attachmentsBucket }) {
+  const server = new ApolloServer({
     typeDefs,
     resolvers,
     cors: true,
     subscriptions: true,
     context: { messages, attachmentsBucket }
   });
+
   return server;
 }

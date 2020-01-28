@@ -3,12 +3,11 @@ import sade from 'sade';
 import mongodbModule from 'mongodb';
 import { createServers } from '@postie_/server';
 import postieWebPath from '@postie_/web';
-import apolloServerModule from 'apollo-server-koa';
 import Koa from 'koa';
 import Router from 'koa-router';
 import koaStatic from 'koa-static';
 import koaSend from 'koa-send';
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
 import mm from 'mongodb-memory-server';
@@ -19,7 +18,6 @@ const { MongoMemoryServer } = mm;
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const { MongoClient } = mongodbModule;
-const { ApolloServer } = apolloServerModule;
 
 const prog = sade('postie');
 
@@ -62,21 +60,11 @@ prog
         const mongo = await MongoClient.connect(mongoUri, { useUnifiedTopology: true, auth });
         const db = mongo.db(mongoDb);
     
-        const { graphqlServer, smtpServer } = createServers({ db, ApolloServer });
-    
-        smtpServer.listen(parseInt(opts['smtp-port'], 10));
+        const { router, installSubscriptionHandlers, smtpServer } = createServers({ db });
 
         const app = new Koa();
 
-        graphqlServer.applyMiddleware({ app });
-
         app.use(koaStatic(postieWebPath));
-
-        const router = new Router();
-
-        router.get('/attachment/:id', () => {
-            // TODO: attachments middleware
-        });
 
         router.get('*', (ctx) => {
             return koaSend(ctx, 'index.html', { root: postieWebPath });
@@ -84,14 +72,10 @@ prog
 
         app.use(router.routes());
 
-        app.use((ctx, next) => {
-            console.log('here');
-            return next();
-        });
-
         const httpServer = http.createServer(app.callback())
-        graphqlServer.installSubscriptionHandlers(httpServer);
+        installSubscriptionHandlers(httpServer);
 
+        smtpServer.listen(parseInt(opts['smtp-port'], 10));
         httpServer.listen(parseInt(opts['web-port'], 10));
         console.log(`🚀 Server ready at http://127.0.0.1:${opts['web-port']}`);
     });

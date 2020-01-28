@@ -10,12 +10,11 @@
     "postie": "src/index.mjs"
   },
   "scripts": {
-    "dev": "nodemon --watch src --experimental-modules src/index.mjs start"
+    "dev": "nodemon --watch src --experimental-modules src/index.mjs start --web-port 8026 --smtp-port 1026 --mongo-db mail"
   },
   "dependencies": {
     "@postie_/server": "1.0.0-alpha.2",
     "@postie_/web": "1.0.0-alpha.2",
-    "apollo-server-koa": "^2.9.16",
     "koa": "^2.11.0",
     "koa-router": "^8.0.6",
     "koa-send": "^5.0.0",

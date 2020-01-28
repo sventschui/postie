@@ -1,12 +1,13 @@
 import smtpServerModule from 'smtp-server';
 import mongodbModule from 'mongodb';
+import Router from 'koa-router';
 import createGraphqlServer from './graphql/index.mjs';
 import storeMailInDb from './store-mail-in-db.mjs';
 
 const { SMTPServer: SmtpServer } = smtpServerModule;
-const { GridFSBucket } = mongodbModule;
+const { GridFSBucket, ObjectID } = mongodbModule;
 
-export function createServers({ db, ApolloServer }) {
+export function createServers({ db, apolloServerOptions = {} }) {
     const messages = db.collection('messages');
     const attachmentsBucket = new GridFSBucket(db, { bucketName: 'attachments', chunkSizeBytes: 1024 * 1024 })
 
@@ -31,7 +32,37 @@ export function createServers({ db, ApolloServer }) {
         }
     });
 
-    const graphqlServer = createGraphqlServer({ ApolloServer, messages, attachmentsBucket });
+    const router = new Router();
 
-    return { smtpServer, graphqlServer };
+    const apolloServer = createGraphqlServer({ messages, attachmentsBucket });
+    apolloServer.applyMiddleware({
+        ...apolloServerOptions,
+        app: {
+            use(mw) {
+                router.get('/graphql', mw);
+                router.post('/graphql', mw);
+            },
+        },
+    });
+
+    router.get('/attachments/:id', async (ctx) => {
+        const _id = ObjectID.createFromHexString(ctx.params.id);
+        const meta = await attachmentsBucket.find({ _id }).limit(1).next();
+
+        if (meta) {
+            ctx.set('Content-Disposition', `attachment; filename="${meta.filename}"`);
+            ctx.set('Content-Type', meta.contentType);
+            ctx.body = await attachmentsBucket.openDownloadStream(_id);
+        } else {
+            ctx.status = 404;
+        }
+    });
+
+    return {
+        smtpServer,
+        router,
+        installSubscriptionHandlers(httpServer) {
+            apolloServer.installSubscriptionHandlers(httpServer);
+        },
+    };
 }

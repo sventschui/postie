@@ -44,8 +44,8 @@ export default function MessageMeta({ message, onShowIOsPreview }) {
           {message.attachments.map(attachment => (
             <li>
               <a
-                target="_blank"
-                href={`/attachment/${attachment.attachmentId}`}
+                native // tell preact-router to not handle clicks on this link
+                href={`/attachments/${attachment.attachmentId}`}
               >
                 {attachment.filename || attachment.attachmentId}{" "}
                 <small>
