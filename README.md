@@ -14,13 +14,13 @@ postie is a small SMTP server for development purposes. It will provide you with
 ### Docker
 
 ```sh
-docker run --rm -it -p 1025:1025 -p 8025:8025 postiee/postie:1.0.0-alpha.2-1
+docker run --rm -it -p 1025:1025 -p 8025:8025 postiee/postie:1.0.0-alpha.4-1
 ```
 
 or use `start --help` to learn about all options postie knows about:
 
 ```sh
-docker run --rm -it -p 1025:1025 -p 8025:8025 postiee/postie:1.0.0-alpha.2-1 start --help
+docker run --rm -it -p 1025:1025 -p 8025:8025 postiee/postie:1.0.0-alpha.4-1 start --help
 ```
 
 **Note:** When using the docker image postie defaults to an in-memory db.
