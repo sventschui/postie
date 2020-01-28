@@ -2,7 +2,7 @@
 
 postie is a small SMTP server for development purposes. It will provide you with a simple web UI where you can view the mails delivered to postie.
 
-![postie-1 0 0-alpha 4](https://user-images.githubusercontent.com/512692/73295927-e822fc80-4208-11ea-96fb-a8401f665822.jpg)
+![postie-1 0 0-alpha 4](https://user-images.githubusercontent.com/512692/73296125-641d4480-4209-11ea-88f7-eecf4addec18.jpg)
 
 ## Running
 
