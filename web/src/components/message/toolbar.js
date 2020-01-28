@@ -43,6 +43,10 @@ export default function MessageToolbar({
           border-bottom: 1px solid #eee;
         }
 
+        :global(.dark-mode) .toolbar {
+          border-color: #444;
+        }
+
         .device-selection {
           display: flex;
           align-items: center;
@@ -66,10 +70,6 @@ export default function MessageToolbar({
 
         .delete-button:hover svg {
           fill: #9b4dca;
-        }
-
-        :global(.dark-mode) .device-selection {
-          border-color: #444;
         }
 
         .device-selection label {

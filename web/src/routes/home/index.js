@@ -4,6 +4,7 @@ import { useQuery, useMutation, useSubscription } from "@urql/preact";
 import { Link } from "preact-router/match";
 import Message from "../../components/message";
 import Loading from "../../components/loading";
+import { MESSAGES_QUERY } from '../../queries';
 
 function pad(num) {
   return `${num}`.padStart(2, "0");
@@ -15,36 +16,6 @@ function formatDate(dateStr) {
     date.getHours()
   )}:${pad(date.getMinutes())}`;
 }
-
-export const MESSAGES_QUERY = `query Q($after: String, $to: String, $subject: String, $text: String) {
-	messages(
-		first: 20,
-		after: $after,
-		to: $to,
-		subject: $subject,
-		text: $text,
-		order: { field: DATE, direction: DESC }
-	) {
-		totalCount
-		pageInfo {
-			endCursor
-			hasNextPage
-		}
-		edges {
-			node {
-				id
-				subject
-				from {
-					text
-				}
-				to {
-					text
-				}
-				dateSent
-			}
-		}
-	}
-}`;
 
 const Home = ({ messageId, search }) => {
   const [after, setAfter] = useState(null);

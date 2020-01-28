@@ -1,11 +1,13 @@
 import { h } from "preact";
-import { useCallback, useLayoutEffect, useState, useRef } from "preact/hooks";
+import { useCallback, useState, useRef } from "preact/hooks";
 import { useQuery, useMutation } from "@urql/preact";
-import ResizeObserver from "resize-observer-polyfill";
+import gql from 'graphql-tag';
 import Loading from "../loading";
-import MailEntry from "./mail-entry";
 import Toolbar from './toolbar';
 import Meta from './meta';
+import IOsPreviewModal from './ios-preview/modal';
+import { MESSAGE_QUERY } from '../../queries';
+import useResizeObserver from '../../hooks/use-resize-observer';
 
 const devices = {
   full: {
@@ -30,59 +32,16 @@ const devices = {
   }
 };
 
-const useResizeObserver = () => {
-  const [entry, setEntry] = useState({});
-  const [node, setNode] = useState(null);
-  const observer = useRef(null);
-
-  const disconnect = useCallback(() => {
-    const { current } = observer;
-    current && current.disconnect();
-  }, []);
-
-  const observe = useCallback(() => {
-    observer.current = new ResizeObserver(([entry]) => setEntry(entry));
-    node && observer.current.observe(node);
-  }, [node]);
-
-  useLayoutEffect(() => {
-    observe();
-    return () => disconnect();
-  }, [disconnect, observe]);
-
-  return [setNode, entry];
-};
-
 export default function Message({ id }) {
   const [result] = useQuery({
-    query: `query Q($id: ID!) {
-            message(id: $id) {
-                id
-                subject
-                from {
-                    text
-                }
-                to {
-                    text
-                }
-                html
-                text
-                dateSent
-                attachments {
-                    attachmentId
-                    filename
-                    contentType
-                    size
-                }
-            }
-        }`,
+    query: MESSAGE_QUERY,
     variables: {
       id
     }
   });
 
   const [deleteMutationResult, executeDeleteMutation] = useMutation(
-    `mutation Delete($input: DeleteMessageInput!) { deleteMessage(input: $input) { id } }`
+    gql`mutation Delete($input: DeleteMessageInput!) { deleteMessage(input: $input) { id } }`
   );
 
   function deleteMessage() {
@@ -130,13 +89,6 @@ export default function Message({ id }) {
     setIOsModalOpen(!iOsModalOpen);
   }, [iOsModalOpen, setIOsModalOpen]);
 
-  function clickIOsModal(e) {
-    const { target, currentTarget } = e;
-    if (target === currentTarget) {
-      setIOsModalOpen(false);
-    }
-  }
-
   const [selectedDevice, setSelectedDevice] = useState("full");
 
   const stage = useRef(null);
@@ -169,23 +121,9 @@ export default function Message({ id }) {
 
   return (
     <div className="root">
-      {iOsModalOpen && (
-        <div className="ios-modal" onClick={clickIOsModal}>
-          <div className="ios-preview">
-            <MailEntry
-              sender={
-                message.from.text && message.from.text.replace(/<.+@.+>/, "")
-              }
-              subject={message.subject}
-              // TODO: message.text includes img alt tags, we don't want this in the preheader
-              preheader={message.text}
-              dateSent={new Date(message.dateSent)}
-            />
-          </div>
-        </div>
-      )}
+      <IOsPreviewModal message={message} open={iOsModalOpen} onClose={toggleIOsModal} />
       <Meta message={message} onShowIOsPreview={toggleIOsModal} />
-      <Toolbar devices={devices} selectedDevice={selectedDevice} onSelectDevice={setSelectedDevice} onDelete={deleteMessage} />
+      <Toolbar devices={devices} selectedDevice={selectedDevice} onSelectDevice={setSelectedDevice} onDeleteMessage={deleteMessage} />
       <div className="stage" ref={stage}>
         <div
           style={{
@@ -199,38 +137,6 @@ export default function Message({ id }) {
         </div>
       </div>
       <style jsx>{`
-        .ios-modal {
-          position: absolute;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          left: 0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 1000;
-        }
-
-        .ios-modal > * {
-          position: relative;
-        }
-
-        .ios-modal::before {
-          display: block;
-          content: "";
-          position: absolute;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          left: 0;
-          background: rgba(0, 0, 0, 0.5);
-        }
-
-        .ios-preview {
-          background: white;
-          width: 375px;
-        }
-
         .stage {
           background: #eee;
           display: flex;
