@@ -7,6 +7,7 @@ import {
   formatCursor
 } from "./utils.mjs";
 import m from "mongodb";
+import escapeRegex from 'escape-string-regexp';
 
 const { ObjectId } = m;
 const { ApolloServer: DefaultApolloServer, gql, PubSub } = apolloServerModule;
@@ -29,15 +30,15 @@ function buildFilter({ to, subject, text }) {
   const filter = {};
 
   if (to) {
-    filter["to.text"] = { $regex: new RegExp(to, regexOpts) }; // TODO: escape regex
+    filter["to.text"] = { $regex: new RegExp(escapeRegex(to), regexOpts) };
   }
 
   if (subject) {
-    filter["subject"] = { $regex: new RegExp(subject, regexOpts) }; // TODO: escape regex
+    filter["subject"] = { $regex: new RegExp(escapeRegex(subject), regexOpts) };
   }
 
   if (text) {
-    filter["text"] = { $regex: new RegExp(text, regexOpts) }; // TODO: escape regex
+    filter["text"] = { $regex: new RegExp(escapeRegex(text), regexOpts) };
   }
 
   return filter;
