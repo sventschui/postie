@@ -345,13 +345,14 @@ const resolvers = {
   }
 };
 
-export default function createServer({ messages, attachmentsBucket }) {
+export default function createServer({ messages, attachmentsBucket, apolloServerOptions }) {
   const server = new ApolloServer({
     typeDefs,
     resolvers,
     cors: true,
     subscriptions: true,
-    context: { messages, attachmentsBucket }
+    context: { messages, attachmentsBucket },
+    ...apolloServerOptions,
   });
 
   return server;

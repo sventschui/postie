@@ -7,7 +7,7 @@ import storeMailInDb from './store-mail-in-db.mjs';
 const { SMTPServer: SmtpServer } = smtpServerModule;
 const { GridFSBucket, ObjectID } = mongodbModule;
 
-export function createServers({ db, apolloServerOptions = {} }) {
+export function createServers({ db, apolloServerMiddlewareOptions = {}, apolloServerOptions = {} }) {
     const messages = db.collection('messages');
     const attachmentsBucket = new GridFSBucket(db, { bucketName: 'attachments', chunkSizeBytes: 1024 * 1024 })
 
@@ -34,9 +34,9 @@ export function createServers({ db, apolloServerOptions = {} }) {
 
     const router = new Router();
 
-    const apolloServer = createGraphqlServer({ messages, attachmentsBucket });
+    const apolloServer = createGraphqlServer({ messages, attachmentsBucket, apolloServerOptions });
     apolloServer.applyMiddleware({
-        ...apolloServerOptions,
+        ...apolloServerMiddlewareOptions,
         app: {
             use(mw) {
                 router.get('/graphql', mw);
