@@ -63,7 +63,7 @@ export const MESSAGES_QUERY = `query Q($after: String, $to: String, $subject: St
 }`;
 
 const subscriptionClient = new SubscriptionClient(
-  `ws://${window.location.host}/graphql`,
+  `${document.baseURI.replace(/\/$/, '').replace(/http(s?):\/\//, 'ws$1://')}/graphql`,
   {
     reconnect: true,
     connectionParams: {}
@@ -171,8 +171,6 @@ const cache = cacheExchange({
         });
 
         cache.updateQuery({ query: `query Q($id: ID!) { message(id: $id) { id } }`, variables: { id: input.id } }, data => {
-          console.log(data, data&& data.message);
-
           if (data) {
             data.message = null;
           }
@@ -189,7 +187,7 @@ const cache = cacheExchange({
 });
 
 const client = createClient({
-  url: "/graphql",
+  url: `${document.baseURI.replace(/\/$/, '')}/graphql`,
   requestPolicy: 'network-only',
   exchanges: [
     dedupExchange,
@@ -214,6 +212,8 @@ export default function App() {
     }
   }
 
+  const base = document.baseURI.replace(document.location.origin, '');
+
   return (
     <Provider value={client}>
       <div className="wrapper">
@@ -223,8 +223,8 @@ export default function App() {
           search={search}
         />
         <Router>
-          <Home path="/" search={search} />
-          <Home path="/:messageId" search={search} />
+          <Home path={`${base}`} search={search} />
+          <Home path={`${base}:messageId`} search={search} />
         </Router>
       </div>
       <style jsx global>{`

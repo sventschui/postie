@@ -1,14 +1,14 @@
 import { h } from "preact";
 import IOsPreview from "./ios-preview";
 
-export default function MessageIOsPreviewModal({ open, message }) {
+export default function MessageIOsPreviewModal({ open, message, onClose }) {
   return open ? (
     <div
       className="ios-modal"
       onClick={e => {
         const { target, currentTarget } = e;
         if (target === currentTarget) {
-          setIOsModalOpen(false);
+          onClose(false);
         }
       }}
     >

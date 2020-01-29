@@ -67,6 +67,7 @@ const Home = ({ messageId, search }) => {
 
   function renderList() {
     if (result.error) return <p>Oh no...</p>;
+    const base = document.baseURI.replace(document.location.origin, '');
 
     return (
       <div className="wrapper">
@@ -88,7 +89,7 @@ const Home = ({ messageId, search }) => {
             {result.data &&
               result.data.messages.edges.map(({ node: message }) => (
                 <li>
-                  <Link href={`/${message.id}`}>
+                  <Link href={`${base}${message.id}`}>
                     <span className="from-date">
                       <span className="from">
                         {message.from &&

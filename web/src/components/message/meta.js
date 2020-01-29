@@ -20,6 +20,8 @@ function formatSize(bytes) {
 }
 
 export default function MessageMeta({ message, onShowIOsPreview }) {
+  const base = document.baseURI.replace(document.location.origin, '');
+  
   return (
     <div className="meta">
       <dl>
@@ -45,7 +47,7 @@ export default function MessageMeta({ message, onShowIOsPreview }) {
             <li>
               <a
                 native // tell preact-router to not handle clicks on this link
-                href={`/attachments/${attachment.attachmentId}`}
+                href={`${base}attachments/${attachment.attachmentId}`}
               >
                 {attachment.filename || attachment.attachmentId}{" "}
                 <small>
