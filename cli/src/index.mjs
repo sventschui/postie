@@ -65,7 +65,7 @@ prog
             let mongoUri = opts['mongo-uri'];
             let mongoUser = opts['mongo-user'];
             let mongoPassword = opts['mongo-password-file']
-                ? fs.readFileSync(opts['mongo-password-file'], 'utf8')
+                ? fs.readFileSync(opts['mongo-password-file'], 'utf8').trim()
                 : opts['mongo-password'];
             let mongoDb = opts['mongo-db'];
 
