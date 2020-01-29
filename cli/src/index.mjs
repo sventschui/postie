@@ -35,6 +35,11 @@ prog
     .option('--mongo-user', 'Change the mongo user')
     .option('--mongo-password', 'Change the mongo password')
     .option('--mongo-password-file', 'Change the mongo password (read from file)')
+    .option('--smtp-allow-insecure-auth', 'Allow AUTH on non-secure (non-tls) SMTP connections', false)
+    .option('--smtp-auth-allow-all', 'SMTP allow all user/password combinations', false)
+    .option('--smtp-auth-username', 'SMTP user', 'postie')
+    .option('--smtp-auth-password', 'SMTP password', 'postie')
+    .option('--smtp-auth-password-file', 'SMTP password file')
     .option('--in-memory', 'Use an in-memory mongodb', false)
     .action(async (opts) => {
         try { 
@@ -81,8 +86,29 @@ prog
             }
             const mongo = await MongoClient.connect(mongoUri, { useUnifiedTopology: true, auth });
             const db = mongo.db(mongoDb);
-        
-            const { router, installSubscriptionHandlers, smtpServer } = createServers({ db, apolloServerOptions: { subscriptions: `${opts['context-root']}graphql` } });
+       
+            
+            const smtpPassword = opts['smtp-auth-password-file']
+                ? (await fs.promises.readFile(opts['smtp-auth-password-file'], 'utf8')).trim()
+                : opts['smtp-auth-password'];
+
+            const { router, installSubscriptionHandlers, smtpServer } = createServers({
+                db,
+                smtpServerOptions: {
+                    allowInsecureAuth: opts['smtp-allow-insecure-auth'],
+                    onAuth(auth, session, callback) {
+                        if (opts['smtp-auth-allow-all']
+                            || (auth.username === opts['smtp-auth-username'] && auth.password === smtpPassword)) {
+                                callback(null, { user: auth.username });
+                        } else {
+                            callback(null, { user: null });
+                        }
+                    }
+                },
+                apolloServerOptions: {
+                    subscriptions: `${opts["context-root"]}graphql`
+                }
+            });
 
             const app = new Koa();
             app.use((ctx, next) => {
