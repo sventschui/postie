@@ -65,7 +65,7 @@ prog
             let mongoUri = opts['mongo-uri'];
             let mongoUser = opts['mongo-user'];
             let mongoPassword = opts['mongo-password-file']
-                ? fs.readFileSync(opts['mongo-password-file'], 'utf8').trim()
+                ? fs.readFileSync(opts['mongo-password-file'], 'utf8')
                 : opts['mongo-password'];
             let mongoDb = opts['mongo-db'];
 
@@ -89,7 +89,7 @@ prog
        
             
             const smtpPassword = opts['smtp-auth-password-file']
-                ? (await fs.promises.readFile(opts['smtp-auth-password-file'], 'utf8')).trim()
+                ? await fs.promises.readFile(opts['smtp-auth-password-file'], 'utf8')
                 : opts['smtp-auth-password'];
 
             const { router, installSubscriptionHandlers, smtpServer } = createServers({
