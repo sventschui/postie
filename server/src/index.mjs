@@ -7,7 +7,7 @@ import storeMailInDb from './store-mail-in-db.mjs';
 const { SMTPServer: SmtpServer } = smtpServerModule;
 const { GridFSBucket, ObjectID } = mongodbModule;
 
-export function createServers({ db, apolloServerMiddlewareOptions = {}, apolloServerOptions = {} }) {
+export function createServers({ db, apolloServerMiddlewareOptions = {}, apolloServerOptions = {}, smtpServerOptions = {} }) {
     const messages = db.collection('messages');
     const attachmentsBucket = new GridFSBucket(db, { bucketName: 'attachments', chunkSizeBytes: 1024 * 1024 })
 
@@ -20,6 +20,7 @@ export function createServers({ db, apolloServerMiddlewareOptions = {}, apolloSe
         authOptional: true,
         disableReverseLookup: true,
         logger: true,
+        ...smtpServerOptions,
         async onData(stream, session, callback) {
             try {
                 await storeMailInDb({ stream, messages, attachmentsBucket });
