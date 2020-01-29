@@ -1,6 +1,6 @@
 {
   "name": "@postie_/cli",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.9",
   "main": "src/index.mjs",
   "license": "MIT",
   "files": [
@@ -10,10 +10,10 @@
     "postie": "src/index.mjs"
   },
   "scripts": {
-    "dev": "nodemon --watch src --experimental-modules src/index.mjs start --web-port 8026 --smtp-port 1031 --mongo-db mail --smtp-auth-username test --smtp-auth-password 1234"
+    "dev": "nodemon --watch src --experimental-modules src/index.mjs start --web-port 8026 --smtp-port 1031 --mongo-db mail"
   },
   "dependencies": {
-    "@postie_/server": "1.0.0-alpha.5",
+    "@postie_/server": "1.0.0-alpha.6",
     "@postie_/web": "1.0.0-alpha.5",
     "koa": "^2.11.0",
     "koa-basic-auth": "^4.0.0",

@@ -14,7 +14,7 @@ export function createServers({ db, apolloServerMiddlewareOptions = {}, apolloSe
     const smtpServer = new SmtpServer({
         secure: false,
         name: 'postie',
-        banner: 'postie v1.0.0-alpha-1',
+        banner: 'postie v1.0.0-alpha-8',
         size: 1024 * 1024 * 100, // 100 MB max mail size
         hideSize: false,
         authOptional: true,
