@@ -4,7 +4,7 @@ import mongodbModule from 'mongodb';
 import { createServers } from '@postie_/server';
 import postieWebPath from '@postie_/web';
 import Koa from 'koa';
-import Router from 'koa-router';
+import basicAuth from 'koa-basic-auth';
 import koaStatic from 'koa-static';
 import koaSend from 'koa-send';
 import { dirname } from 'path';
@@ -29,6 +29,9 @@ prog
     .command('start')
     .option('--smtp-port', 'Change the port of the SMTP server', '1025')
     .option('--web-port', 'Change the port of the web server', '8025')
+    .option('--web-auth', 'Require BASIC authentication', false)
+    .option('--web-auth-username', 'Username for BASIC authentication', 'foo')
+    .option('--web-auth-password', 'Password for BASIC authentication', 'bar')
     .option('--context-root', 'Run everything under a context-root', '/')
     .option('--mongo-uri', 'Change the mongo uri used', 'mongodb://127.0.0.1:27017')
     .option('--mongo-db', 'Change the mongo db', 'mails')
@@ -111,6 +114,35 @@ prog
             });
 
             const app = new Koa();
+
+            if (opts['web-auth']) {
+                console.warn('When enabling basic auth service workers are disabled. This might lead to issues and require a hard-reload in your browser when you had service workers enabled before!');
+                app.use(async (ctx, next) => {
+                    try {
+                        await next();
+                    } catch (err) {
+                        if (401 == err.status) {
+                            ctx.status = 401;
+                            ctx.set('WWW-Authenticate', 'Basic');
+                            ctx.body = 'cant haz that';
+                        } else {
+                            throw err;
+                        }
+                    }
+                });
+
+                app.use(basicAuth({ user: opts['web-auth-username'], pass: opts['web-auth-password'] }));
+
+                app.use((ctx, next) => {
+                    if (ctx.path === '/sw-esm.js' || ctx.path === '/sw.js') {
+                        ctx.status = 404;
+                        return;
+                    }
+
+                    return next();
+                });
+            }
+
             app.use((ctx, next) => {
                 ctx.path = ctx.path.replace(opts['context-root'], '/')
                 return next();
