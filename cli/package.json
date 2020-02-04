@@ -1,6 +1,6 @@
 {
   "name": "@postie_/cli",
-  "version": "1.0.0-alpha.10",
+  "version": "1.0.0-alpha.11",
   "main": "src/index.mjs",
   "license": "MIT",
   "files": [

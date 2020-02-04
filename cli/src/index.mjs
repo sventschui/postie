@@ -32,6 +32,7 @@ prog
     .option('--web-auth', 'Require BASIC authentication', false)
     .option('--web-auth-username', 'Username for BASIC authentication', 'foo')
     .option('--web-auth-password', 'Password for BASIC authentication', 'bar')
+    .option('--web-auth-password-file', 'Password file for BASIC authentication')
     .option('--context-root', 'Run everything under a context-root', '/')
     .option('--mongo-uri', 'Change the mongo uri used', 'mongodb://127.0.0.1:27017')
     .option('--mongo-db', 'Change the mongo db', 'mails')
@@ -131,7 +132,10 @@ prog
                     }
                 });
 
-                app.use(basicAuth({ user: opts['web-auth-username'], pass: opts['web-auth-password'] }));
+                const basicAuthPassword = opts['web-auth-password-file']
+                    ? (await fs.promises.readFile(opts['web-auth-password-file'], 'utf8')).trim()
+                    : opts['web-auth-password'];
+                app.use(basicAuth({ user: opts['web-auth-username'], pass: basicAuthPassword }));
 
                 app.use((ctx, next) => {
                     if (ctx.path === '/sw-esm.js' || ctx.path === '/sw.js') {
