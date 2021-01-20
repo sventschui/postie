@@ -6,10 +6,10 @@ import { onMessagesAdded } from './graphql/index.mjs';
 const { simpleParser } = mailParserModule;
 
 export default async function storeMailInDb({
-                                                stream, // stream for the mails content
-                                                messages, // Collection for the messages
-                                                attachmentsBucket, // GridFS Bucket to store attachment
-                                            }) {
+    stream, // stream for the mails content
+    messages, // Collection for the messages
+    attachmentsBucket, // GridFS Bucket to store attachment
+}) {
     // TODO: simpleParser buffers attachments in memory. Might be worth to replace with the event based MailParser
     const parsed = await simpleParser(stream, {
         skipHtmlToText: true,
@@ -29,11 +29,11 @@ export default async function storeMailInDb({
 
     const attachmentsWithId = await Promise.all([
         ...attachments.map(async ({
-                                      filename,
-                                      contentType,
-                                      content,
-                                      size,
-                                  }, index) => {
+            filename,
+            contentType,
+            content,
+            size,
+        }, index) => {
             const uploadStream = attachmentsBucket.openUploadStream(filename || `attachment-${index}`, { contentType });
             await new Promise((res, rej) => {
                 uploadStream.end(content, (err) => {
