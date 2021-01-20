@@ -135,6 +135,7 @@ const typeDefs = gql`
     id: ID!
     from: SenderRecipient
     to: [SenderRecipient]!
+    cc: [SenderRecipient]
     text: String!
     html: String
     subject: String
