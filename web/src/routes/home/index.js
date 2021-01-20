@@ -4,7 +4,7 @@ import { useQuery, useMutation, useSubscription } from "@urql/preact";
 import { Link } from "preact-router/match";
 import Message from "../../components/message";
 import Loading from "../../components/loading";
-import { MESSAGES_QUERY } from '../../queries';
+import { MESSAGES_QUERY } from '../../queries';
 
 function pad(num) {
   return `${num}`.padStart(2, "0");

@@ -45,7 +45,7 @@
     "preact-router": "^3.0.0",
     "resize-observer-polyfill": "^1.5.1",
     "serve": "^11.1.0",
-    "styled-jsx": "^3.2.4",
+    "styled-jsx": "3.2.4",
     "subscriptions-transport-ws": "^0.9.16",
     "urql": "^1.8.2",
     "ws": "^7.2.1"
@@ -57,5 +57,7 @@
       "<rootDir>/tests/__mocks__/setupTests.js"
     ]
   },
-  "dependencies": {}
+  "dependencies": {
+    "styled-jsx": "3.2.4"
+  }
 }

@@ -6,7 +6,7 @@ import Loading from "../loading";
 import Toolbar from './toolbar';
 import Meta from './meta';
 import IOsPreviewModal from './ios-preview/modal';
-import { MESSAGE_QUERY } from '../../queries';
+import { MESSAGE_QUERY } from '../../queries';
 import useResizeObserver from '../../hooks/use-resize-observer';
 
 const devices = {

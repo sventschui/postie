@@ -38,6 +38,14 @@ export default function MessageMeta({ message, onShowIOsPreview }) {
             </span>
           ))}
         </dd>
+        <dt>Cc:</dt>
+        <dd>
+          {message.cc.map(cc => (
+              <span key={cc.text} className="emailAddress">
+              {cc.text}
+            </span>
+          ))}
+        </dd>
         <dt>Subject:</dt>
         <dd>{message.subject}</dd>
       </dl>
