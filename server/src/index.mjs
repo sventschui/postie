@@ -5,7 +5,7 @@ import createGraphqlServer from './graphql/index.mjs';
 import storeMailInDb from './store-mail-in-db.mjs';
 
 const { SMTPServer: SmtpServer } = smtpServerModule;
-const { GridFSBucket, ObjectID } = mongodbModule;
+const { GridFSBucket, ObjectId } = mongodbModule;
 
 export function createServers({ db, apolloServerMiddlewareOptions = {}, apolloServerOptions = {}, smtpServerOptions = {} }) {
     const messages = db.collection('messages');
@@ -24,7 +24,7 @@ export function createServers({ db, apolloServerMiddlewareOptions = {}, apolloSe
         async onData(stream, session, callback) {
             try {
                 await storeMailInDb({ stream, messages, attachmentsBucket });
-    
+
                 callback();
             } catch (e) {
                 console.error('Failed to accept mail!');
@@ -47,7 +47,7 @@ export function createServers({ db, apolloServerMiddlewareOptions = {}, apolloSe
     });
 
     router.get('/attachments/:id', async (ctx) => {
-        const _id = ObjectID.createFromHexString(ctx.params.id);
+        const _id = ObjectId.createFromHexString(ctx.params.id);
         const meta = await attachmentsBucket.find({ _id }).limit(1).next();
 
         if (meta) {

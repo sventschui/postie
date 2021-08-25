@@ -21,7 +21,7 @@ function formatSize(bytes) {
 
 export default function MessageMeta({ message, onShowIOsPreview }) {
   const base = document.baseURI.replace(document.location.origin, '');
-  
+
   return (
     <div className="meta">
       <dl>
@@ -33,18 +33,14 @@ export default function MessageMeta({ message, onShowIOsPreview }) {
         <dt>To:</dt>
         <dd>
           {message.to.map(to => (
-            <span key={to.text} className="emailAddress">
-              {to.text}
-            </span>
+            <span key={to.text} className="emailAddress">{to.text}</span>
           ))}
         </dd>
         <dt>Cc:</dt>
         <dd>
-          {message.cc.map(cc => (
-              <span key={cc.text} className="emailAddress">
-              {cc.text}
-            </span>
-          ))}
+          {message.cc ? message.cc.map(cc => (
+             cc?.text ? <span key={cc.text} className="emailAddress">{cc.text}</span> : ""
+           )) : ""}
         </dd>
         <dt>Subject:</dt>
         <dd>{message.subject}</dd>

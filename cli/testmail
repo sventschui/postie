@@ -1,0 +1,24 @@
+EHLO localhost
+MAIL FROM:<noreply@example.edu>
+RCPT TO:<test@example.com>
+DATA
+From: <noreply2@example.edu>
+To: <test2@example.com>
+Sender: No Reply <noreply@example.edu>
+Reply-To: No Reply <noreply_onbehalfof@example.edu>
+Subject: Apples
+Mime-Version: 1.0
+Content-Type: multipart/alternative; boundary="apples";
+
+--apples
+Content-Type: text/plain
+
+This is plain text
+
+--apples
+Content-Type: text/html
+
+<h1>This is HTML</h1>
+
+--apples--
+.

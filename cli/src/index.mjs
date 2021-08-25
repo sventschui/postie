@@ -46,7 +46,7 @@ prog
     .option('--smtp-auth-password-file', 'SMTP password file')
     .option('--in-memory', 'Use an in-memory mongodb', false)
     .action(async (opts) => {
-        try { 
+        try {
             const indexHtml = path.join(postieWebPath, 'index.html');
             let contents = await fs.promises.readFile(indexHtml, 'utf8');
             const baseHrefRegexp = /<base(.+?)href=["']([^"']+?)["']/;
@@ -74,12 +74,13 @@ prog
             let mongoDb = opts['mongo-db'];
 
             if (opts['in-memory']) {
-                const mongod = new MongoMemoryServer();
-                await mongod.start();
-                const instanceInfo = mongod.getInstanceInfo();
-                instanceInfo.instance.auth
-                mongoUri = await mongod.getUri();
-                mongoDb = await mongod.getDbName();
+                console.log("Start MongoMemoryServer")
+                const mongod = await MongoMemoryServer.create();
+                console.log(mongod.instanceInfo)
+                //const instanceInfo = mongod.instanceInfo;
+                //instanceInfo.instance.auth
+                mongoUri = mongod.getUri();
+                mongoDb = mongod.instanceInfo.dbName;
                 mongoUser = '';
                 mongoPassword = '';
             }
@@ -88,10 +89,10 @@ prog
             if (mongoUser) {
                 auth = { user: mongoUser, password: mongoPassword };
             }
-            const mongo = await MongoClient.connect(mongoUri, { useUnifiedTopology: true, auth });
+            const mongo = await MongoClient.connect(mongoUri, { useUnifiedTopology: true, useNewUrlParser: true, auth });
             const db = mongo.db(mongoDb);
-       
-            
+
+
             const smtpPassword = opts['smtp-auth-password-file']
                 ? await fs.promises.readFile(opts['smtp-auth-password-file'], 'utf8')
                 : opts['smtp-auth-password'];
@@ -154,7 +155,7 @@ prog
 
             // router.prefix(opts['context-root']);
             router.use(koaStatic(postieWebPath));
-            router.get('*', (ctx) => {
+            router.get('(.*)', (ctx) => {
                 return koaSend(ctx, 'index.html', { root: postieWebPath });
             });
             app.use(router.routes());

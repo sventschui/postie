@@ -7,11 +7,11 @@
 import mongodbModule from 'mongodb';
 import delve from 'dlv';
 
-const { ObjectID } = mongodbModule;
+const { ObjectId } = mongodbModule;
 
 export function parseCursor(cursorStr) {
   const [type, objectIdStr] = Buffer.from(cursorStr, 'base64').toString('utf8').split(':');
-  const objectId = ObjectID.createFromHexString(objectIdStr);
+  const objectId = ObjectId.createFromHexString(objectIdStr);
   return { type, objectId };
 }
 
