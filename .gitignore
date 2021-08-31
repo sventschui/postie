@@ -1,3 +1,10 @@
 node_modules/
 yarn-error.log
 
+# IntelliJ
+.idea/*
+*/.idea/*
+!.idea/runConfigurations
+!.idea/codeStyles
+!.idea/codeStyleSettings.xml
+
