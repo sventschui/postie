@@ -48,8 +48,8 @@ export default async function storeMailInDb({
         }),
     ]);
 
-    let toArray = Array.isArray(to) ? to : [to];
-    let ccArray = Array.isArray(cc) ? cc : [cc];
+    const toArray = [to].flat();
+    const ccArray = [cc].flat().filter(x => !!x);
 
     const message = {
         from: from && { value: from.value, text: from.text },
