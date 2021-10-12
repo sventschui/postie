@@ -11,6 +11,9 @@ export const MESSAGE_QUERY = gql`
       to {
         text
       }
+      cc {
+        text
+      }
       html
       text
       dateSent
@@ -52,6 +55,9 @@ export const MESSAGES_QUERY = gql`
             text
           }
           to {
+            text
+          }
+          cc {
             text
           }
           dateSent

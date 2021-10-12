@@ -1,9 +1,9 @@
 export default (config, env, helpers) => {
-  let { rule } = helpers.getLoadersByName(config, "babel-loader")[0];
+  let { rule } = helpers.getLoadersByName(config, 'babel-loader')[0];
   let babelConfig = rule.options;
 
-  babelConfig.plugins.push(require.resolve("styled-jsx/babel"));
-  babelConfig.plugins.push(require.resolve("babel-plugin-graphql-tag"));
+  babelConfig.plugins.push(require.resolve('styled-jsx/babel'));
+  babelConfig.plugins.push(require.resolve('babel-plugin-graphql-tag'));
 
   const htmlPlugin = helpers.getPluginsByName(config, 'HtmlWebpackPlugin')[0].plugin;
 
@@ -11,18 +11,18 @@ export default (config, env, helpers) => {
   config.output.publicPath = '';
 
   if (config.devServer) {
-    config.devServer["proxy"] = [
+    config.devServer['proxy'] = [
       {
         ws: true,
-        path: "/graphql",
-        target: "http://localhost:8025"
+        path: '/graphql',
+        target: 'http://localhost:8025',
         // ...any other stuff...
       },
       {
-        path: "/attachments",
-        target: "http://localhost:8025"
+        path: '/attachments',
+        target: 'http://localhost:8025',
         // ...any other stuff...
-      }
+      },
     ];
   }
 };

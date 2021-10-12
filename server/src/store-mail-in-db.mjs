@@ -17,7 +17,7 @@ export default async function storeMailInDb({
     });
 
     let { text } = parsed;
-    const { html, headers, subject, to, from, attachments } = parsed;
+    const { html, headers, subject, to, cc, from, attachments } = parsed;
 
     if (html) {
         text = htmlToText.fromString(html, {
@@ -35,16 +35,26 @@ export default async function storeMailInDb({
             size,
         }, index) => {
             const uploadStream = attachmentsBucket.openUploadStream(filename || `attachment-${index}`, { contentType });
-            await new Promise((res, rej) => { uploadStream.end(content, (err) => { if (err) { rej(err); } else { res(); } }); });
+            await new Promise((res, rej) => {
+                uploadStream.end(content, (err) => {
+                    if (err) {
+                        rej(err);
+                    } else {
+                        res();
+                    }
+                });
+            });
             return { attachmentId: uploadStream.id, filename, contentType, size };
         }),
     ]);
 
-    let toArray = Array.isArray(to) ? to : [to];
+    const toArray = [to].flat();
+    const ccArray = [cc].flat().filter(x => !!x);
 
     const message = {
         from: from && { value: from.value, text: from.text },
         to: toArray.map(item => item && ({ value: item.value, text: item.text })),
+        cc: ccArray.map(item => item && ({ value: item.value, text: item.text })),
         subject,
         headers,
         text,
