@@ -25,7 +25,7 @@ export function onMessagesDeleted(ids) {
   return pubsub.publish(MESSAGES_DELETED, { messagesDeleted: { ids } });
 }
 
-function buildFilter({ to, subject, text }) {
+function buildFilter({ to, subject, text, lang }) {
   const regexOpts = ""; // adding 'i' here will make the search super slow...
   const filter = {};
 
@@ -39,6 +39,10 @@ function buildFilter({ to, subject, text }) {
 
   if (text) {
     filter["text"] = { $regex: new RegExp(escapeRegex(text), regexOpts) };
+  }
+
+  if (lang && lang !== 'all') {
+    filter["lang"] = lang;
   }
 
   return filter;
@@ -56,6 +60,7 @@ const typeDefs = gql`
       to: String
       subject: String
       text: String
+      lang: String
     ): MessageConnection!
     message(id: ID!): Message
   }
@@ -141,6 +146,7 @@ const typeDefs = gql`
     subject: String
     dateReceived: String!
     dateSent: String
+    lang: String
     attachments: [MessageAttachment!]!
   }
 
@@ -265,7 +271,7 @@ const resolvers = {
     },
     async messages(
       parent,
-      { first, after, last, before, order, to, subject, text },
+      { first, after, last, before, order, to, subject, text, lang },
       { messages }
     ) {
       if (after != null && before != null) {
@@ -301,7 +307,7 @@ const resolvers = {
       }
 
       let query;
-      const filter = buildFilter({ to, subject, text });
+      const filter = buildFilter({ to, subject, text, lang });
 
       if (!order || order.field === "ID") {
         query = querySortById(

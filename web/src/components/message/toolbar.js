@@ -47,13 +47,6 @@ export default function MessageToolbar({
           border-color: #444;
         }
 
-        .device-selection {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin-left: auto;
-        }
-
         .delete-button {
           margin: 0;
           margin-left: auto;
@@ -70,6 +63,13 @@ export default function MessageToolbar({
 
         .delete-button:hover svg {
           fill: #9b4dca;
+        }
+
+        .device-selection {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-left: auto;
         }
 
         .device-selection label {

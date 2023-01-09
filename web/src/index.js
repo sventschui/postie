@@ -56,6 +56,7 @@ export const MESSAGES_QUERY = `query Q($after: String, $to: String, $subject: St
 					__typename
 					text
 				}
+                lang
 				dateSent
 			}
 		}
@@ -201,6 +202,12 @@ const client = createClient({
 
 export default function App() {
   const [search, setSearch] = useState({});
+  const [lang, setLang] = useState("all");
+
+  function setLanguage(langToUse) {
+    setLang(langToUse);
+    setSearch((prevState) => ({ ...prevState, lang: langToUse }));
+  }
 
   function setDarkMode(enabled) {
     if (enabled) {
@@ -220,6 +227,8 @@ export default function App() {
         <Header
           onSetDarkMode={setDarkMode}
           onSearch={setSearch}
+          onSetLanguage={setLanguage}
+          lang={lang}
           search={search}
         />
         <Router>

@@ -1,6 +1,7 @@
 export default (config, env, helpers) => {
+  console.log(config);
   let { rule } = helpers.getLoadersByName(config, 'babel-loader')[0];
-  let babelConfig = rule.options;
+  let babelConfig = rule.use[0].options;
 
   babelConfig.plugins.push(require.resolve('styled-jsx/babel'));
   babelConfig.plugins.push(require.resolve('babel-plugin-graphql-tag'));
