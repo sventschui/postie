@@ -1,6 +1,6 @@
 {
   "name": "@axah/postie-cli",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "src/index.mjs",
   "license": "MIT",
   "files": [
@@ -13,8 +13,8 @@
     "dev": "nodemon --watch src --experimental-modules src/index.mjs start --web-port 8026 --smtp-port 1031 --mongo-db mail"
   },
   "dependencies": {
-    "@axah/postie-server": "1.0.4",
-    "@axah/postie-web": "1.0.4",
+    "@axah/postie-server": "1.0.5",
+    "@axah/postie-web": "1.0.5",
     "koa": "^2.11.0",
     "koa-basic-auth": "^4.0.0",
     "koa-router": "^8.0.6",
