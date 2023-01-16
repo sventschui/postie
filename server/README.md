@@ -1,3 +1,3 @@
-# @postie_/server
+# @axah/postie-server
 
 See https://github.com/sventschui/postie

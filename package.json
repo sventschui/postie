@@ -1,6 +1,6 @@
 {
   "name": "postie",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "main": "index.js",
   "repository": "https://github.com/sventschui/postie.git",
   "author": "Sven Tschui <github@sventschui.ch>",

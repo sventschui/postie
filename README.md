@@ -23,7 +23,7 @@ docker run --rm -it -p 1025:1025 -p 8025:8025 postiee/postie:1.0.0-alpha.5-1 sta
 ### npm
 
 ```sh
-npm i @postie_/cli
+npm i @axah/postie-cli
 ./node_modules/.bin/postie start
 ```
 
