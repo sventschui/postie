@@ -28,7 +28,7 @@ const indexes = [
         key: { subject: 1 },
         name: 'messages.subject',
     },
-]
+];
 
 export async function createServers({ db, apolloServerMiddlewareOptions = {}, apolloServerOptions = {}, smtpServerOptions = {} }) {
     const messages = db.collection('messages');
