@@ -1,4 +1,4 @@
-FROM node:13-slim
+FROM node:16-slim
 
 ARG POSTIE_VERSION=1.0.0-alpha.3
 
