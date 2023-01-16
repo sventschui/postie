@@ -7,10 +7,37 @@ import storeMailInDb from './store-mail-in-db.mjs';
 const { SMTPServer: SmtpServer } = smtpServerModule;
 const { GridFSBucket, ObjectID } = mongodbModule;
 
-export function createServers({ db, apolloServerMiddlewareOptions = {}, apolloServerOptions = {}, smtpServerOptions = {} }) {
+const indexes = [
+    {
+        key: { lang: 1 },
+        name: 'messages.lang',
+    },
+    {
+        key: { from: 1 },
+        name: 'messages.from',
+    },
+    {
+        key: { to: 1 },
+        name: 'messages.to',
+    },
+    {
+        key: { text: 1 },
+        name: 'messages.text',
+    },
+    {
+        key: { subject: 1 },
+        name: 'messages.subject',
+    },
+]
+
+export async function createServers({ db, apolloServerMiddlewareOptions = {}, apolloServerOptions = {}, smtpServerOptions = {} }) {
     const messages = db.collection('messages');
     const attachmentsBucket = new GridFSBucket(db, { bucketName: 'attachments', chunkSizeBytes: 1024 * 1024 })
-
+    await Promise.all(
+        indexes.map(({ key, ...options}) => {
+            messages.createIndex(key, options);
+        }),
+    );
     const smtpServer = new SmtpServer({
         secure: false,
         name: 'postie',
@@ -24,7 +51,7 @@ export function createServers({ db, apolloServerMiddlewareOptions = {}, apolloSe
         async onData(stream, session, callback) {
             try {
                 await storeMailInDb({ stream, messages, attachmentsBucket });
-    
+
                 callback();
             } catch (e) {
                 console.error('Failed to accept mail!');
