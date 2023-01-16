@@ -96,7 +96,7 @@ prog
                 ? await fs.promises.readFile(opts['smtp-auth-password-file'], 'utf8')
                 : opts['smtp-auth-password'];
 
-            const { router, installSubscriptionHandlers, smtpServer } = createServers({
+            const { router, installSubscriptionHandlers, smtpServer } = await createServers({
                 db,
                 smtpServerOptions: {
                     allowInsecureAuth: opts['smtp-allow-insecure-auth'],

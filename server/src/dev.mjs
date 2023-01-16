@@ -11,7 +11,7 @@ const { MongoClient } = mongodbModule;
   });
   const db = mongo.db("mail");
 
-  const { router, installSubscriptionHandlers, smtpServer } = createServers({
+  const { router, installSubscriptionHandlers, smtpServer } = await createServers({
     db
   });
 
