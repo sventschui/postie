@@ -1,12 +1,19 @@
 import { h } from "preact";
 import { useState, useCallback, useRef } from "preact/hooks";
-import { Link } from "preact-router/match";
 
 const UP = 38;
 const DOWN = 40;
 const ENTER = 13;
 
 const types = ["text", "subject", "to"];
+
+const languages = [
+  { name: "de", value: "de" },
+  { name: "it", value: "it" },
+  { name: "fr", value: "fr" },
+  { name: "en", value: "en" },
+  { name: "all", value: "all" },
+];
 
 const Sun = props => (
   <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -28,7 +35,7 @@ const Moon = props => (
   </svg>
 );
 
-const Header = ({ onSearch, search, onSetDarkMode }) => {
+const Header = ({ onSearch, search, onSetDarkMode, onSetLanguage, lang }) => {
   const [typing, setTyping] = useState(false);
   const [text, setText] = useState("");
   const [type, setType] = useState("text");
@@ -50,7 +57,7 @@ const Header = ({ onSearch, search, onSetDarkMode }) => {
           <div className="search-box">
             {Object.entries(search).map(
               ([t, term]) =>
-                term && (
+                term && t !== 'lang' && (
                   <span className="search-item">
                     <span className="type">{t}</span>
                     <span className="term">{term}</span>
@@ -139,6 +146,26 @@ const Header = ({ onSearch, search, onSetDarkMode }) => {
               </ol>
             </div>
           ) : null}
+        </div>
+        <div className="lang-selection">
+          {languages.map(({name, value}) => (
+              <Fragment key={name}>
+                <input
+                    key="input"
+                    checked={lang === value}
+                    id={`lang-${name}`}
+                    type="radio"
+                    name="lang"
+                    value={value}
+                    onChange={e => {
+                      onSetLanguage(e.target.value);
+                    }}
+                />
+                <label key="label" htmlFor={`lang-${name}`}>
+                  {name.toUpperCase()}
+                </label>
+              </Fragment>
+          ))}
         </div>
         <button className="dark-mode-toggle">
           <Sun
@@ -376,6 +403,55 @@ const Header = ({ onSearch, search, onSetDarkMode }) => {
 		:global(.dark-mode) .delete-search:hover {
 			color: #ccc;
 		}
+		
+		
+        .lang-selection {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-left: auto;
+        }
+
+        .lang-selection label {
+          padding: 10px;
+          font-size: 11px;
+          font-weight: 300;
+          margin: 0;
+          border: 1px solid #eee;
+          border-left-width: 0;
+          height: auto;
+          line-height: 1;
+        }
+
+        :global(.dark-mode) .lang-selection label {
+          border-color: #444;
+          color: #ccc;
+        }
+
+        .lang-selection label:last-of-type {
+          border-top-right-radius: 5px;
+          border-bottom-right-radius: 5px;
+        }
+
+        .lang-selection label:first-of-type {
+          border-top-left-radius: 5px;
+          border-bottom-left-radius: 5px;
+          border-left-width: 1px;
+        }
+
+        .lang-selection input {
+          visibility: hidden;
+          height: 0;
+          width: 0;
+          position: absolute;
+        }
+
+        .lang-selection input:checked + label {
+          background: #9b4dca;
+          border-color: #9b4dca;
+          color: white;
+          font-weight: bold;
+        }
       `}</style>
     </div>
   );

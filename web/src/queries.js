@@ -16,6 +16,7 @@ export const MESSAGE_QUERY = gql`
       }
       html
       text
+      lang
       dateSent
       attachments {
         attachmentId
@@ -33,6 +34,7 @@ export const MESSAGES_QUERY = gql`
     $to: String
     $subject: String
     $text: String
+    $lang: String
   ) {
     messages(
       first: 20
@@ -40,6 +42,7 @@ export const MESSAGES_QUERY = gql`
       to: $to
       subject: $subject
       text: $text
+      lang: $lang
       order: { field: DATE, direction: DESC }
     ) {
       totalCount
@@ -60,6 +63,7 @@ export const MESSAGES_QUERY = gql`
           cc {
             text
           }
+          lang
           dateSent
         }
       }

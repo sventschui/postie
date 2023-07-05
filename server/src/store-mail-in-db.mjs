@@ -1,5 +1,6 @@
 import mailParserModule from 'mailparser';
 import htmlToText from 'html-to-text';
+import { franc } from 'franc-min';
 
 import { onMessagesAdded } from './graphql/index.mjs';
 
@@ -51,6 +52,9 @@ export default async function storeMailInDb({
     const toArray = [to].flat();
     const ccArray = [cc].flat().filter(x => !!x);
 
+    const lang = franc(text, { only: ["deu", "fra", "ita", "eng"] })?.slice(0, 2);
+
+
     const message = {
         from: from && { value: from.value, text: from.text },
         to: toArray.map(item => item && ({ value: item.value, text: item.text })),
@@ -59,6 +63,7 @@ export default async function storeMailInDb({
         headers,
         text,
         html,
+        lang,
         attachments: attachmentsWithId,
     };
 

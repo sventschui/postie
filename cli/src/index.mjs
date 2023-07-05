@@ -1,8 +1,8 @@
 #!/usr/bin/env node --experimental-modules
 import sade from 'sade';
 import mongodbModule from 'mongodb';
-import { createServers } from '@postie_/server';
-import postieWebPath from '@postie_/web';
+import { createServers } from '@axah/postie-server';
+import postieWebPath from '@axah/postie-web';
 import Koa from 'koa';
 import basicAuth from 'koa-basic-auth';
 import koaStatic from 'koa-static';
@@ -96,7 +96,7 @@ prog
                 ? await fs.promises.readFile(opts['smtp-auth-password-file'], 'utf8')
                 : opts['smtp-auth-password'];
 
-            const { router, installSubscriptionHandlers, smtpServer } = createServers({
+            const { router, installSubscriptionHandlers, smtpServer } = await createServers({
                 db,
                 smtpServerOptions: {
                     allowInsecureAuth: opts['smtp-allow-insecure-auth'],

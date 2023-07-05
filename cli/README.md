@@ -1,3 +1,3 @@
-# @postie_/cli
+# @axah/postie-cli
 
 See https://github.com/sventschui/postie

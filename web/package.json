@@ -1,6 +1,6 @@
 {
-  "name": "@postie_/web",
-  "version": "1.0.0-alpha.5",
+  "name": "@axah/postie-web",
+  "version": "1.0.5",
   "license": "MIT",
   "main": "index.js",
   "scripts": {
