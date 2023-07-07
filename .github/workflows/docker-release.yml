@@ -28,5 +28,6 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_HEALTHBOT_USER }}
           password: ${{ secrets.DOCKER_HUB_HEALTH_PASSWORD }}
       - name: Run build script
-        run: ./docker/build.sh
+        working-directory: ./docker
+        run: ./build.sh
         shell: bash
