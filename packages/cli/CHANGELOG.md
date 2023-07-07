@@ -1,5 +1,11 @@
 # @axah/postie-cli
 
+## 3.1.1
+
+### Patch Changes
+
+- 9297133: Add packageJson version number into cli instead of hardcoded version
+
 ## 3.1.0
 
 ### Minor Changes
