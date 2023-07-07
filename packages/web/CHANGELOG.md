@@ -1,5 +1,11 @@
 # @axah/postie-web
 
+## 3.0.1
+
+### Patch Changes
+
+- 782b6a2: Test diffrent version bumps and remove pino
+
 ## 3.0.0
 
 ### Major Changes

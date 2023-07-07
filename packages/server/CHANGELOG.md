@@ -1,5 +1,11 @@
 # @axah/postie-server
 
+## 4.0.0
+
+### Major Changes
+
+- 782b6a2: Test diffrent version bumps and remove pino
+
 ## 3.0.0
 
 ### Major Changes
