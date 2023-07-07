@@ -21,7 +21,6 @@ import packageJson from '../package.json';
 import { resolvers, typeDefs } from './graphql';
 import storeMailInDb from './messages/store-mail-in-db';
 import type { Message } from './messages/types';
-import log from './log';
 
 type Index = {
   key: IndexSpecification;
@@ -87,7 +86,7 @@ export async function createServers({
         callback();
       } catch (e: any) {
         const error = throwableToError(e);
-        log.error(error, 'Failed to accept mail!');
+        console.error(error, 'Failed to accept mail!');
         callback(error);
       }
     },
