@@ -1,5 +1,11 @@
 # @axah/postie-server
 
+## 3.0.0
+
+### Major Changes
+
+- 5ef8a31: Bump and add arm build
+
 ## 2.0.0
 
 ### Major Changes
