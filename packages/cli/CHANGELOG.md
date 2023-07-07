@@ -1,5 +1,17 @@
 # @axah/postie-cli
 
+## 3.1.0
+
+### Minor Changes
+
+- 782b6a2: Test diffrent version bumps and remove pino
+
+### Patch Changes
+
+- Updated dependencies [782b6a2]
+  - @axah/postie-server@4.0.0
+  - @axah/postie-web@3.0.1
+
 ## 3.0.0
 
 ### Major Changes
