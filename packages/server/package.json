@@ -9,7 +9,7 @@
     "lib/**"
   ],
   "scripts": {
-    "standalone-dev": "node-dev --respawn src/dev.ts | pino-pretty -c -t --errorProps *",
+    "standalone-dev": "node-dev --respawn src/dev.ts",
     "lint": "tsc --incremental --noEmit && eslint .",
     "build": "pnpm lint && pnpm build-typescript",
     "build-typescript": "tsc --build tsconfig.build.json",
@@ -21,7 +21,6 @@
     "@axah/gateway-utils": "^2.1.5",
     "@axah/js-utils": "^1.1.0",
     "@axah/koa": "^5.2.0",
-    "@axah/pino-log": "^2.4.0",
     "@graphql-tools/schema": "^10.0.0",
     "@types/node": "^20.3.3",
     "@types/ws": "^8.5.5",
@@ -39,7 +38,6 @@
     "koa-router": "^12.0.0",
     "mailparser": "^3.6.5",
     "mongodb": "^5.6.0",
-    "pino": "^8.14.1",
     "smtp-server": "^3.12.0",
     "ws": "^7.2.1"
   },
@@ -56,7 +54,6 @@
     "eslint": "^8.44.0",
     "node-dev": "^8.0.0",
     "nodemon": "^2.0.22",
-    "pino-pretty": "^10.0.1",
     "prettier": "^2.8.8",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"
