@@ -1,17 +1,21 @@
-import mailParserModule from 'mailparser';
-import htmlToText from 'html-to-text';
-import { franc } from 'franc-min';
+import { simpleParser } from 'mailparser';
+import { convert } from 'html-to-text';
 
-import { onMessagesAdded } from './graphql/index';
-
-const { simpleParser } = mailParserModule;
+import type { Stream } from 'stream';
+import { Readable } from 'stream';
+import type { Collection, GridFSBucket, GridFSFile } from 'mongodb';
+import { onMessagesAdded } from '../graphql';
+import type { Attachment, Message } from './types';
 
 export default async function storeMailInDb({
   stream, // stream for the mails content
   messages, // Collection for the messages
   attachmentsBucket, // GridFS Bucket to store attachment
+}: {
+  stream: Buffer | Stream | string;
+  messages: Collection<Message>;
+  attachmentsBucket: GridFSBucket;
 }) {
-  // TODO: simpleParser buffers attachments in memory. Might be worth to replace with the event based MailParser
   const parsed = await simpleParser(stream, {
     skipHtmlToText: true,
     skipTextToHtml: true,
@@ -21,38 +25,47 @@ export default async function storeMailInDb({
   const { html, headers, subject, to, cc, from, attachments } = parsed;
 
   if (html) {
-    text = htmlToText.fromString(html, {
+    text = convert(html, {
       wordwrap: Number.MAX_SAFE_INTEGER,
-      uppercaseHeadings: false,
-      singleNewLineParagraphs: true,
     });
   }
 
-  const attachmentsWithId = await Promise.all([
+  const attachmentsWithId: ReadonlyArray<Attachment> = await Promise.all<Attachment>([
     ...attachments.map(async ({ filename, contentType, content, size }, index) => {
-      const uploadStream = attachmentsBucket.openUploadStream(filename || `attachment-${index}`, {
-        contentType,
-      });
-      await new Promise((res, rej) => {
-        uploadStream.end(content, (err) => {
-          if (err) {
+      return new Promise<Attachment>((res, rej) => {
+        Readable.from(content)
+          .pipe(
+            attachmentsBucket.openUploadStream(filename || `attachment-${index}`, {
+              contentType,
+            }),
+          )
+          .on('error', (err: Error) => {
             rej(err);
-          } else {
-            res();
-          }
-        });
+          })
+          .on(
+            'finish',
+            ({
+              _id: attachmentId,
+              filename: newFileName,
+              contentType: newContentType,
+            }: GridFSFile) => {
+              const attachment = {
+                attachmentId,
+                filename: newFileName,
+                contentType: newContentType,
+                size,
+              };
+              res(attachment);
+            },
+          );
       });
-      return {
-        attachmentId: uploadStream.id,
-        filename,
-        contentType,
-        size,
-      };
     }),
   ]);
 
   const toArray = [to].flat();
   const ccArray = [cc].flat().filter((x) => !!x);
+
+  const { franc } = await import('franc-min');
 
   const lang = franc(text, { only: ['deu', 'fra', 'ita', 'eng'] })?.slice(0, 2);
 

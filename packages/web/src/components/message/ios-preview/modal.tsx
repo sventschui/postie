@@ -1,11 +1,20 @@
-import { h } from "preact";
-import IOsPreview from "./ios-preview";
+import { h } from 'preact';
+import IOsPreview from './ios-preview';
+import type { Message, SenderRecipient } from '../../../generated/graphql';
 
-export default function MessageIOsPreviewModal({ open, message, onClose }) {
+type Props = {
+  open: boolean;
+  message: Pick<Message, 'subject' | 'dateSent' | 'dateReceived' | 'text'> & {
+    from?: Pick<SenderRecipient, 'text'> | undefined | null;
+  };
+  onClose: (bool: boolean) => void;
+};
+
+export default function MessageIOsPreviewModal({ open, message, onClose }: Props) {
   return open ? (
     <div
       className="ios-modal"
-      onClick={e => {
+      onClick={(e) => {
         const { target, currentTarget } = e;
         if (target === currentTarget) {
           onClose(false);
@@ -14,11 +23,11 @@ export default function MessageIOsPreviewModal({ open, message, onClose }) {
     >
       <div className="ios-preview">
         <IOsPreview
-          sender={message.from.text && message.from.text.replace(/<.+@.+>/, "")}
-          subject={message.subject}
+          sender={message.from?.text && message.from.text.replace(/<.+@.+>/, '')}
+          subject={message.subject || undefined}
           // TODO: message.text includes img alt tags, we don't want this in the preheader
           preheader={message.text}
-          dateSent={new Date(message.dateSent)}
+          dateSent={new Date(message.dateSent || message.dateReceived)}
         />
       </div>
       <style jsx>{`
@@ -40,7 +49,7 @@ export default function MessageIOsPreviewModal({ open, message, onClose }) {
 
         .ios-modal::before {
           display: block;
-          content: "";
+          content: '';
           position: absolute;
           top: 0;
           right: 0;

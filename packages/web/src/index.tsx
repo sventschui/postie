@@ -1,95 +1,51 @@
-import { h, Component } from "preact";
-import { useState } from "preact/hooks";
-import { Router } from "preact-router";
-import {
-  createClient,
-  dedupExchange,
-  fetchExchange,
-  subscriptionExchange,
-  Provider
-} from "@urql/preact";
-import { cacheExchange } from "@urql/exchange-graphcache";
-import { relayPagination } from "@urql/exchange-graphcache/extras";
+import { h } from 'preact';
+import { useState } from 'preact/hooks';
+import { Route, Router } from 'preact-router';
+import { createClient, fetchExchange, Provider, subscriptionExchange } from '@urql/preact';
+import type { Cache } from '@urql/exchange-graphcache';
+import { cacheExchange } from '@urql/exchange-graphcache';
+import { relayPagination } from '@urql/exchange-graphcache/extras';
 import { createClient as createWSClient } from 'graphql-ws';
 
-import Header from "./components/header";
+import Header from './components/header';
 
 // Code-splitting is automated for routes
-import Home from "./routes/home";
+import Home from './routes/home';
+import { MESSAGE_QUERY, MESSAGES_QUERY } from './gql';
+import type {
+  DeleteAllMessagesMutation,
+  DeleteAllMessagesMutationVariables,
+  DeleteMessageMutation,
+  DeleteMessageMutationVariables,
+  MessagesAddedSubscription,
+  MessagesDeletedSubscription,
+} from './generated/graphql';
 
-if (process.env.NODE_ENV === "development") {
-  require("preact/debug");
-}
+const wsClient = createWSClient({
+  url: `${document.baseURI.replace(/\/$/, '').replace(/http(s?):\/\//, 'ws$1://')}/graphql`,
+});
 
-let ws;
-
-if (typeof window === "undefined") {
-  ws = require("ws");
-}
-
-export const MESSAGES_QUERY = `query Q($after: String, $to: String, $subject: String, $text: String) {
-	messages(
-		first: 20,
-		after: $after,
-		to: $to,
-		subject: $subject,
-		text: $text,
-		order: { field: DATE, direction: DESC }
-	) {
-		__typename
-		pageInfo {
-			__typename
-			endCursor
-			hasNextPage
-		}
-		edges {
-			__typename
-			node {
-				__typename
-				id
-				subject
-				from {
-					__typename
-					text
-				}
-				to {
-					__typename
-					text
-				}
-                lang
-				dateSent
-			}
-		}
-	}
-}`;
-
-const wsClient = createWSClient(
-{ url: `${document.baseURI.replace(/\/$/, '').replace(/http(s?):\/\//, 'ws$1://')}/graphql`},
-);
-
-
-const cache = cacheExchange({
+const graphCache = cacheExchange({
   resolvers: {
     Query: {
-      messages: relayPagination()
-    }
+      messages: relayPagination(),
+    },
   },
   updates: {
     Subscription: {
-      messagesAdded: ({ messagesAdded }, _args, cache) => {
-        cache.updateQuery({ query: MESSAGES_QUERY, variables: {} }, data => {
-          if (data != null) {
+      messagesAdded: ({ messagesAdded }: MessagesAddedSubscription, _args, cache: Cache) => {
+        cache.updateQuery({ query: MESSAGES_QUERY, variables: {} }, (data) => {
+          if (data) {
             messagesAdded
               .slice()
               .reverse()
-              .forEach(message => {
+              .forEach((message) => {
                 data.messages.edges.unshift({
-                  __typename: "MessageEdge",
-                  id: String(new Date().getTime()),
-                  node: message
+                  __typename: 'MessageEdge',
+                  node: message,
                 });
               });
-            if (typeof data.messages.totalCount === "number") {
+            if (typeof data.messages.totalCount === 'number') {
               data.messages.totalCount += messagesAdded.length;
             }
             data.messages.pageInfo.startCursor = messagesAdded[0].id;
@@ -99,15 +55,14 @@ const cache = cacheExchange({
           return null;
         });
       },
-      messagesDeleted: ({ messagesDeleted }, _args, cache) => {
-        console.log(messagesDeleted, 'test')
-        cache.updateQuery({ query: MESSAGES_QUERY, variables: {} }, data => {
-          if (data != null) {
+      messagesDeleted: ({ messagesDeleted }: MessagesDeletedSubscription, _args, cache) => {
+        cache.updateQuery({ query: MESSAGES_QUERY, variables: {} }, (data) => {
+          if (data) {
             data.messages.edges = data.messages.edges.filter(({ node }) => {
               return messagesDeleted.ids.indexOf(node.id) === -1;
             });
 
-            if (typeof data.messages.totalCount === "number") {
+            if (typeof data.messages.totalCount === 'number') {
               data.messages.totalCount -= messagesDeleted.ids.length;
             }
 
@@ -119,15 +74,18 @@ const cache = cacheExchange({
       },
     },
     Mutation: {
-      deleteMessages: ({ deleteMessages }, { input }, cache) => {
-        cache.updateQuery({ query: MESSAGES_QUERY, variables: input }, data => {
-          if (data != null) {
-
+      deleteMessages: (
+        { deleteMessages }: DeleteAllMessagesMutation,
+        { input }: DeleteAllMessagesMutationVariables,
+        cache,
+      ) => {
+        cache.updateQuery({ query: MESSAGES_QUERY, variables: input }, (data) => {
+          if (data) {
             data.messages.edges = data.messages.edges.filter(({ node }) => {
               return deleteMessages.ids.indexOf(node.id) === -1;
             });
 
-            if (typeof data.messages.totalCount === "number") {
+            if (typeof data.messages.totalCount === 'number') {
               data.messages.totalCount -= deleteMessages.ids.length;
             }
 
@@ -142,23 +100,27 @@ const cache = cacheExchange({
         });
 
         deleteMessages.ids.forEach((id) => {
-          cache.updateQuery({ query: `query Q($id: ID!) { message(id: $id) { id } }`, variables: { id } }, data => {
+          cache.updateQuery({ query: MESSAGE_QUERY, variables: { id } }, (data) => {
             if (data) {
               data.message = null;
             }
-  
+
             return data;
           });
         });
       },
-      deleteMessage: ({ deleteMessages }, { input, search }, cache) => {
-        cache.updateQuery({ query: MESSAGES_QUERY, variables: search }, data => {
-          if (data != null) {
+      deleteMessage: (
+        { deleteMessage }: DeleteMessageMutation,
+        { input }: DeleteMessageMutationVariables,
+        cache,
+      ) => {
+        cache.updateQuery({ query: MESSAGES_QUERY, variables: {} }, (data) => {
+          if (data) {
             data.messages.edges = data.messages.edges.filter(({ node }) => {
-              return node.id !== input.id;
+              return node.id !== deleteMessage.id;
             });
 
-            if (typeof data.messages.totalCount === "number") {
+            if (typeof data.messages.totalCount === 'number') {
               data.messages.totalCount -= 1;
             }
 
@@ -168,7 +130,7 @@ const cache = cacheExchange({
           return null;
         });
 
-        cache.updateQuery({ query: `query Q($id: ID!) { message(id: $id) { id } }`, variables: { id: input.id } }, data => {
+        cache.updateQuery({ query: MESSAGE_QUERY, variables: { id: input.id } }, (data) => {
           if (data) {
             data.message = null;
           }
@@ -180,16 +142,15 @@ const cache = cacheExchange({
   },
   keys: {
     SenderRecipient: () => null,
-    MessageAttachment: () => null
-  }
+    MessageAttachment: () => null,
+  },
 });
 
 const client = createClient({
   url: `${document.baseURI.replace(/\/$/, '')}/graphql`,
   requestPolicy: 'network-only',
   exchanges: [
-    dedupExchange,
-    cache,
+    graphCache,
     fetchExchange,
     subscriptionExchange({
       forwardSubscription(request) {
@@ -202,25 +163,25 @@ const client = createClient({
         };
       },
     }),
-  ]
+  ],
 });
 
 export default function App() {
   const [search, setSearch] = useState({});
-  const [lang, setLang] = useState("all");
+  const [lang, setLang] = useState<string>('all');
 
-  function setLanguage(langToUse) {
+  function setLanguage(langToUse: string) {
     setLang(langToUse);
     setSearch((prevState) => ({ ...prevState, lang: langToUse }));
   }
 
-  function setDarkMode(enabled) {
+  function setDarkMode(enabled: boolean) {
     if (enabled) {
-      document.body.classList.add("dark-mode");
-      document.body.classList.remove("light-mode");
+      document.body.classList.add('dark-mode');
+      document.body.classList.remove('light-mode');
     } else {
-      document.body.classList.remove("dark-mode");
-      document.body.classList.add("light-mode");
+      document.body.classList.remove('dark-mode');
+      document.body.classList.add('light-mode');
     }
   }
 
@@ -237,11 +198,15 @@ export default function App() {
           search={search}
         />
         <Router>
-          <Home path={`${base}`} search={search} />
-          <Home path={`${base}:messageId`} search={search} />
+          <Route path={`${base}`} search={search} component={Home} />
+          <Route path={`${base}:messageId`} search={search} component={Home} />
         </Router>
       </div>
-      <style jsx global>{`
+      <style
+        jsx
+        // @ts-ignore
+        global
+      >{`
         html,
         body {
           height: 100%;

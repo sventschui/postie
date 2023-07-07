@@ -1,54 +1,59 @@
-import { h } from "preact";
-import { useCallback, useState, useRef } from "preact/hooks";
-import { useQuery, useMutation } from "@urql/preact";
-import gql from 'graphql-tag';
-import Loading from "../loading";
+import type { RefCallback } from 'preact';
+import { h } from 'preact';
+import { useCallback, useRef, useState } from 'preact/hooks';
+import { useMutation, useQuery } from '@urql/preact';
+import Loading from '../loading';
 import Toolbar from './toolbar';
 import Meta from './meta';
 import IOsPreviewModal from './ios-preview/modal';
-import { MESSAGE_QUERY } from '../../queries';
+import { DELETE_MESSAGE, MESSAGE_QUERY } from '../../gql';
 import useResizeObserver from '../../hooks/use-resize-observer';
 
 const devices = {
   full: {
-    label: "Full width",
-    styles: { width: "100%", height: "100%" }
+    label: 'Full width',
+    styles: { width: '100%', height: '100%' },
   },
-  "iphone-7": {
-    label: "iPhone 7",
-    styles: { width: "375px", height: "667px" }
+  'iphone-7': {
+    label: 'iPhone 7',
+    styles: { width: '375px', height: '667px' },
   },
-  "iphone-7-plus": {
-    label: "iPhone 7 Plus",
-    styles: { width: "414px", height: "736px" }
+  'iphone-7-plus': {
+    label: 'iPhone 7 Plus',
+    styles: { width: '414px', height: '736px' },
   },
-  "iphone-x": {
-    label: "iPhone X",
-    styles: { width: "375px", height: "812px" }
+  'iphone-x': {
+    label: 'iPhone X',
+    styles: { width: '375px', height: '812px' },
   },
-  "htc-one": {
-    label: "HTC ONE",
-    styles: { width: "360px", height: "640px" }
-  }
+  'htc-one': {
+    label: 'HTC ONE',
+    styles: { width: '360px', height: '640px' },
+  },
 };
 
-export default function Message({ id }) {
+export type DevicesType = typeof devices;
+
+export type DevicesKeys = keyof typeof devices;
+
+type Props = {
+  id: string;
+};
+
+export default function Message({ id }: Props) {
   const [result] = useQuery({
     query: MESSAGE_QUERY,
     variables: {
-      id
-    }
+      id,
+    },
   });
 
-  const [deleteMutationResult, executeDeleteMutation] = useMutation(
-    gql`mutation Delete($input: DeleteMessageInput!) { deleteMessage(input: $input) { id } }`
-  );
+  const [_, executeDeleteMutation] = useMutation(DELETE_MESSAGE);
 
   function deleteMessage() {
-    if (result.data) {
+    if (result.data?.message?.id) {
       executeDeleteMutation({
         input: { id: result.data.message.id },
-        search: "todo"
       });
     }
   }
@@ -69,35 +74,36 @@ export default function Message({ id }) {
     );
   }
   if (result.error) return <p>Oh no... {JSON.stringify(result.error)}</p>;
-  const { message } = result.data;
+  const message = result.data?.message;
 
-  function setInnerHtml(ref) {
-    if (ref && message.html) {
-      // TODO: The setTimeout could potentially lead to race conditions
-      // setTimeout to wait for preact to update the DOM
-      setTimeout(() => {
+  const setInnerHtml: RefCallback<HTMLIFrameElement> = (ref) => {
+    if (ref && message?.html) {
+      // TODO: The requestAnimationFrame could potentially lead to race conditions
+      // requestAnimationFrame to wait for preact to update the DOM
+      requestAnimationFrame(() => {
         if (ref.contentDocument) {
           ref.contentDocument.open();
-          ref.contentDocument.write(message.html);
+          ref.contentDocument.write(message.html as string);
+          ref.contentDocument.close();
         }
-      }, 0);
+      });
     }
-  }
+  };
 
-  const [iOsModalOpen, setIOsModalOpen] = useState(false);
+  const [iOsModalOpen, setIOsModalOpen] = useState<boolean>(false);
   const toggleIOsModal = useCallback(() => {
     setIOsModalOpen(!iOsModalOpen);
   }, [iOsModalOpen, setIOsModalOpen]);
 
-  const [selectedDevice, setSelectedDevice] = useState("full");
+  const [selectedDevice, setSelectedDevice] = useState<DevicesKeys>('full');
 
-  const stage = useRef(null);
-  const viewport = useRef(null);
+  const stage = useRef<HTMLDivElement | null>(null);
+  const viewport = useRef<HTMLDivElement | null>(null);
 
-  const [setNode, viewportEntry] = useResizeObserver();
+  const { setNode, entry: viewportEntry } = useResizeObserver();
   setNode(viewport.current);
 
-  const [setNode2, stageEntry] = useResizeObserver();
+  const { setNode: setNode2, entry: stageEntry } = useResizeObserver();
   setNode2(stage.current);
 
   if (!message) {
@@ -106,15 +112,10 @@ export default function Message({ id }) {
 
   let scaleWidth = 1;
   let scaleHeight = 1;
-  if (stageEntry.contentRect && viewportEntry.contentRect) {
-    scaleWidth = Math.min(
-      1,
-      stageEntry.contentRect.width / viewportEntry.contentRect.width
-    );
-    scaleHeight = Math.min(
-      1,
-      stageEntry.contentRect.height / viewportEntry.contentRect.height
-    );
+
+  if (stageEntry?.contentRect && viewportEntry?.contentRect) {
+    scaleWidth = Math.min(1, stageEntry.contentRect.width / viewportEntry.contentRect.width);
+    scaleHeight = Math.min(1, stageEntry.contentRect.height / viewportEntry.contentRect.height);
   }
 
   const scale = Math.min(scaleWidth, scaleHeight);
@@ -123,12 +124,17 @@ export default function Message({ id }) {
     <div className="root">
       <IOsPreviewModal message={message} open={iOsModalOpen} onClose={toggleIOsModal} />
       <Meta message={message} onShowIOsPreview={toggleIOsModal} />
-      <Toolbar devices={devices} selectedDevice={selectedDevice} onSelectDevice={setSelectedDevice} onDeleteMessage={deleteMessage} />
+      <Toolbar
+        devices={devices}
+        selectedDevice={selectedDevice}
+        onSelectDevice={setSelectedDevice}
+        onDeleteMessage={deleteMessage}
+      />
       <div className="stage" ref={stage}>
         <div
           style={{
             ...devices[selectedDevice].styles,
-            transform: `scale(${scale})`
+            transform: `scale(${scale})`,
           }}
           ref={viewport}
         >

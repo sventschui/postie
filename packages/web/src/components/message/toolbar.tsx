@@ -1,11 +1,19 @@
-import { h } from "preact";
+import { Fragment, h } from 'preact';
+import type { TargetedEvent } from 'preact/compat';
+import type { DevicesKeys, DevicesType } from './index';
 
+type Props = {
+  devices: DevicesType;
+  selectedDevice: DevicesKeys;
+  onSelectDevice: (key: DevicesKeys) => void;
+  onDeleteMessage: () => void;
+};
 export default function MessageToolbar({
   devices,
   selectedDevice,
   onSelectDevice,
-  onDeleteMessage
-}) {
+  onDeleteMessage,
+}: Props) {
   return (
     <div className="toolbar">
       <div className="device-selection">
@@ -18,8 +26,8 @@ export default function MessageToolbar({
               type="radio"
               name="device"
               value={name}
-              onChange={e => {
-                onSelectDevice(e.target.value);
+              onChange={(e: TargetedEvent<HTMLInputElement>) => {
+                onSelectDevice((e.target as HTMLInputElement).value as DevicesKeys);
               }}
             />
             <label key="label" htmlFor={`device-${name}`}>

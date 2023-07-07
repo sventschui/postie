@@ -34,9 +34,3 @@ Use `--help` to print all options postie knows about:
 ```
 
 **Note:** When **not** using the docker image postie defaults to use a mongodb running at `127.0.0.1:27017`.
-
-## Thanks
-
-Thanks to all the OSS maintainers of the awesome libraries that made building postie a blast.
-
-Special thanks to [@JoviDeCroock](http://github.com/JoviDeCroock/) for helping me out with all my questions related to [urql](https://github.com/FormidableLabs/urql) ✨.

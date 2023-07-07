@@ -1,2 +1,4 @@
-const path = require('path');
-module.exports = path.join(__dirname, 'build');
+import path from 'path';
+
+const buildDir = path.join(__dirname, '.');
+export default buildDir;

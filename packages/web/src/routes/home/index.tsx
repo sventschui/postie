@@ -1,66 +1,68 @@
-import { h } from "preact";
-import { useState, useRef, useEffect } from "preact/hooks";
-import { useQuery, useMutation, useSubscription } from "@urql/preact";
-import { Link } from "preact-router/match";
-import Message from "../../components/message";
-import Loading from "../../components/loading";
-import { MESSAGES_QUERY } from '../../queries';
+import { h } from 'preact';
+import { useState } from 'preact/hooks';
+import { useMutation, useQuery, useSubscription } from '@urql/preact';
+import { Link } from 'preact-router/match';
+import Message from '../../components/message';
+import Loading from '../../components/loading';
+import {
+  DELETE_ALL_MESSAGES_MUTATION,
+  MESSAGES_ADDED_SUBSCRIPTION,
+  MESSAGES_DELETED_SUBSCRIPTION,
+  MESSAGES_QUERY,
+} from '../../gql';
 
-function pad(num) {
-  return `${num}`.padStart(2, "0");
+function pad(num: number) {
+  return `${num}`.padStart(2, '0');
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr: string | null | undefined) {
+  if (!dateStr) {
+    return '';
+  }
   const date = new Date(dateStr);
-  return `${date.getDate()}.${pad(date.getMonth() + 1)}, ${pad(
-    date.getHours()
-  )}:${pad(date.getMinutes())}`;
+  return `${date.getDate()}.${pad(date.getMonth() + 1)}, ${pad(date.getHours())}:${pad(
+    date.getMinutes(),
+  )}`;
 }
 
-const Home = ({ messageId, search }) => {
-  const [after, setAfter] = useState(null);
+type Props = {
+  messageId: string;
+};
+const Home = ({
+  messageId,
+  search,
+}: {
+  messageId: string;
+  search: Record<string, string | null>;
+}) => {
+  const [after, setAfter] = useState<string | null | undefined>(null);
 
   useSubscription({
-    query: `subscription S {
-	  messagesAdded {
-		  __typename
-		  id
-		  subject
-		  from { text }
-		  to { text }
-		  dateSent
-	  }
-  }`
+    query: MESSAGES_ADDED_SUBSCRIPTION,
   });
 
   useSubscription({
-    query: `subscription S {
-	  messagesDeleted {
-		  ids
-	  }
-  }`
+    query: MESSAGES_DELETED_SUBSCRIPTION,
   });
 
-  let [result] = useQuery(
-    {
-      query: MESSAGES_QUERY,
-      variables: { after, ...search }
-    },
-    [after]
-  );
+  const [result] = useQuery({
+    query: MESSAGES_QUERY,
+    variables: { after, ...search },
+  });
 
+  // @ts-ignore
   window.setAfter = setAfter;
+  // @ts-ignore
   window.result = result;
 
   const [deleteAllMutationResult, executeDeleteAllMutation] = useMutation(
-    `mutation DeleteAll($input: DeleteMessagesInput!) { deleteMessages(input: $input) { ids } }`
+    DELETE_ALL_MESSAGES_MUTATION,
   );
 
   function deleteAll() {
     if (
-      confirm(
-        `Do you really want to delete approx. ${result.data.messages.totalCount} messages?`
-      )
+      // eslint-disable-next-line no-restricted-globals
+      confirm(`Do you really want to delete approx. ${result.data?.messages.totalCount} messages?`)
     )
       executeDeleteAllMutation({ input: search });
   }
@@ -92,18 +94,13 @@ const Home = ({ messageId, search }) => {
                   <Link href={`${base}${message.id}`}>
                     <span className="from-date">
                       <span className="from">
-                        {message.from &&
-                          message.from.text.replace(/<.+@.+>/, "")}
+                        {message.from && message.from.text.replace(/<.+@.+>/, '')}
                       </span>
-                      <span className="date">
-                        {formatDate(message.dateSent)}
-                      </span>
+                      <span className="date">{formatDate(message.dateSent)}</span>
                     </span>
                     <span className="to">
                       {message.to &&
-                        message.to
-                          .map(to => to.text.replace(/<.+@.+>/, ""))
-                          .join(", ")}
+                        message.to.map((to) => to.text.replace(/<.+@.+>/, '')).join(', ')}
                     </span>
                     <span className="subject">{message.subject}</span>
                   </Link>
@@ -115,16 +112,16 @@ const Home = ({ messageId, search }) => {
               className="button-outline"
               disabled={result.fetching}
               onClick={() => {
-                setAfter(result.data.messages.pageInfo.endCursor);
+                setAfter(result.data?.messages?.pageInfo.endCursor);
               }}
             >
               load more
             </button>
           )}
           {result.fetching ? (
-            <div className={`loading-overlay ${result.data ? "has-data" : ""}`}>
+            <div className={`loading-overlay ${result.data ? 'has-data' : ''}`}>
               <div className="loader">
-                <Loading color={result.data ? "white" : "purple"} />
+                <Loading color={result.data ? 'white' : 'purple'} />
               </div>
             </div>
           ) : null}

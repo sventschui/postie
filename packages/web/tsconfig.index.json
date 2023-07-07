@@ -1,0 +1,10 @@
+{
+  "extends": "@axah/tsconfig/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "build",
+    "typeRoots": ["node_modules/@types"],
+    "declaration": true
+  },
+  "include": ["index.ts"],
+  "exclude": ["node_modules"]
+}

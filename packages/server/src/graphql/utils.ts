@@ -1,25 +1,24 @@
-/**
- * See https://www.reindex.io/blog/relay-graphql-pagination-with-mongodb/
- */
-
- // TODO: write tests for these methods...
-
-import mongodbModule from 'mongodb';
+import type { FindCursor, Collection, WithId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import delve from 'dlv';
+import type { Message, SortDirection } from '../messages/types';
 
-const { ObjectID } = mongodbModule;
-
-export function parseCursor(cursorStr) {
-  const [type, objectIdStr] = Buffer.from(cursorStr, 'base64').toString('utf8').split(':');
-  const objectId = ObjectID.createFromHexString(objectIdStr);
-  return { type, objectId };
+export function parseCursor(cursorStr: string) {
+  const [type, ObjectIdStr] = Buffer.from(cursorStr, 'base64').toString('utf8').split(':');
+  const id = ObjectId.createFromHexString(ObjectIdStr);
+  return { type, id };
 }
 
-export function formatCursor(type, objectId) {
+export function formatCursor(type: string, objectId: ObjectId) {
   return Buffer.from(`${type}:${objectId.toHexString()}`).toString('base64');
 }
 
-export async function applyPagination(totalCount, query, first, last) {
+export async function applyPagination(
+  totalCount: number,
+  query: FindCursor<WithId<Message>>,
+  first: number,
+  last: number,
+) {
   let resultCount = totalCount;
 
   if (first || last) {
@@ -50,8 +49,9 @@ export async function applyPagination(totalCount, query, first, last) {
     resultCount = await query.clone().count({});
   }
 
-  let itemsPromise;
-  async function getItems() {
+  let itemsPromise: Promise<ReadonlyArray<WithId<Message>>>;
+
+  async function getItems(): Promise<ReadonlyArray<WithId<Message>>> {
     if (!itemsPromise) {
       itemsPromise = query.toArray();
     }
@@ -73,77 +73,94 @@ export async function applyPagination(totalCount, query, first, last) {
         const items = await getItems();
         return items.length > 0 ? formatCursor('message', items[items.length - 1]._id) : null;
       },
-    }
+    },
   };
 }
 
 /**
  * Optimized version of query() when ordering by _id
  */
-export function querySortById(collection, inFilter, before, after, direction) {
+export function querySortById(
+  collection: Collection<Message>,
+  inFilter: Record<any, any>,
+  before: string,
+  after: string,
+  direction: SortDirection,
+) {
   const filter = {
     ...inFilter,
   };
 
   if (before) {
-    const { objectId } = parseCursor(before);
+    const { id } = parseCursor(before);
     const op = direction === 'ASC' ? '$lt' : '$gt';
     filter._id = {
-      [op]: objectId,
+      [op]: id,
     };
   }
 
   if (after) {
-    const { objectId } = parseCursor(after);
+    const { id } = parseCursor(after);
     const op = direction === 'ASC' ? '$gt' : '$lt';
     filter._id = {
-      [op]: objectId,
+      [op]: id,
     };
   }
 
   return collection.find(filter).sort([['_id', direction === 'ASC' ? 1 : -1]]);
 }
 
-export async function querySortBy(collection, inFilter, field, before, after, direction) {
+export async function querySortBy(
+  collection: Collection<Message>,
+  inFilter: Record<any, any>,
+  field: string,
+  before: string,
+  after: string,
+  direction: SortDirection,
+) {
   let filter = { ...inFilter };
   const limits = {};
   const ors = [];
   if (before) {
-    const { objectId } = parseCursor(before);
+    const { id } = parseCursor(before);
     const op = direction === 'ASC' ? '$lt' : '$gt';
-    const beforeObject = await collection.findOne({
-      _id: objectId,
-    }, {
-      fields: {
-        [field]: 1,
-      },
-    });
-    limits[op] = delve(beforeObject, field);
-    ors.push(
+    const beforeObject = (await collection.findOne(
       {
-        [field]: delve(beforeObject, field),
-        _id: { [op]: objectId },
+        _id: id,
       },
-    );
+      {
+        projection: {
+          [field]: 1,
+        },
+      },
+    )) as WithId<Message>;
+    // @ts-ignore
+    limits[op] = delve(beforeObject, field);
+    ors.push({
+      [field]: delve(beforeObject, field),
+      _id: { [op]: id },
+    });
   }
 
   if (after) {
-    const { objectId } = parseCursor(after);
+    const { id } = parseCursor(after);
     const op = direction === 'ASC' ? '$gt' : '$lt';
-    const afterObject = await collection.findOne({
-      _id: objectId,
-    }, {
-      fields: {
-        [field]: 1,
-      },
-    });
-    limits[op] = delve(afterObject, field);
-    ors.push(
+    const afterObject = (await collection.findOne(
       {
-        [field]: delve(afterObject, field),
-        _id: { [op]: objectId },
+        _id: id,
       },
-    );
+      {
+        projection: {
+          [field]: 1,
+        },
+      },
+    )) as WithId<Message>;
+    // @ts-ignore
+    limits[op] = delve(afterObject, field);
+    ors.push({
+      [field]: delve(afterObject, field),
+      _id: { [op]: id },
+    });
   }
 
   if (before || after) {
@@ -157,6 +174,8 @@ export async function querySortBy(collection, inFilter, field, before, after, di
       ],
     };
   }
-
-  return collection.find(filter).sort([[field, direction === 'ASC' ? 1 : -1], ['_id', direction === 'ASC' ? 1 : -1]]);
+  return collection.find(filter).sort([
+    [field, direction === 'ASC' ? 1 : -1],
+    ['_id', direction === 'ASC' ? 1 : -1],
+  ]);
 }

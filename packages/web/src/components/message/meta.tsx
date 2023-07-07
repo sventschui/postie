@@ -1,6 +1,7 @@
-import { h } from "preact";
+import { h } from 'preact';
+import type { Message, SenderRecipient } from '../../generated/graphql';
 
-function formatSize(bytes) {
+function formatSize(bytes: number) {
   if (bytes < 1024) {
     return `${Math.round(bytes * 10) / 10} B`;
   }
@@ -19,30 +20,39 @@ function formatSize(bytes) {
   return `${Math.round(gb * 10) / 10} GB`;
 }
 
-export default function MessageMeta({ message, onShowIOsPreview }) {
+type Props = {
+  message: Pick<Message, 'subject' | 'dateSent' | 'dateReceived' | 'text' | 'attachments'> & {
+    from?: Pick<SenderRecipient, 'text'> | undefined | null;
+    to?: ReadonlyArray<Pick<SenderRecipient, 'text'> | undefined | null>;
+    cc?: ReadonlyArray<Pick<SenderRecipient, 'text'> | undefined | null>;
+  };
+  onShowIOsPreview: () => void;
+};
+
+export default function MessageMeta({ message, onShowIOsPreview }: Props) {
   const base = document.baseURI.replace(document.location.origin, '');
-  
+
   return (
     <div className="meta">
       <dl>
         {/* TODO: we could make the recipients clickable and set the search/filter to that to/from address */}
         <dt>From:</dt>
         <dd>
-          <span className="emailAddress">{message.from.text}</span>
+          <span className="emailAddress">{message.from?.text}</span>
         </dd>
         <dt>To:</dt>
         <dd>
-          {message.to.map(to => (
-            <span key={to.text} className="emailAddress">
-              {to.text}
+          {message.to?.map((to) => (
+            <span key={to?.text} className="emailAddress">
+              {to?.text}
             </span>
           ))}
         </dd>
         <dt>Cc:</dt>
         <dd>
-          {message.cc.map(cc => (
-              <span key={cc.text} className="emailAddress">
-              {cc.text}
+          {message.cc?.map((cc) => (
+            <span key={cc?.text} className="emailAddress">
+              {cc?.text}
             </span>
           ))}
         </dd>
@@ -51,15 +61,16 @@ export default function MessageMeta({ message, onShowIOsPreview }) {
       </dl>
       <div className="meta-attachments">
         <ul>
-          {message.attachments.map(attachment => (
+          {message.attachments.map((attachment) => (
             <li>
               <a
+                // @ts-ignore
                 native // tell preact-router to not handle clicks on this link
                 href={`${base}attachments/${attachment.attachmentId}`}
               >
-                {attachment.filename || attachment.attachmentId}{" "}
+                {attachment.filename || attachment.attachmentId}{' '}
                 <small>
-                  ({attachment.contentType.split("/")[1].toUpperCase()},{" "}
+                  ({attachment.contentType.split('/')[1].toUpperCase()},{' '}
                   {formatSize(attachment.size)})
                 </small>
               </a>

@@ -1,14 +1,27 @@
 {
-  "name": "postie",
-  "version": "1.0.4",
+  "name": "@axah/postie",
+  "version": "0.0.0",
   "main": "index.js",
-  "repository": "https://github.com/sventschui/postie.git",
-  "author": "Sven Tschui <github@sventschui.ch>",
+  "repository": "https://github.com/axa-health/postie.git",
+  "author": "Dario Di Fazio",
   "license": "MIT",
   "private": true,
-  "workspaces": [
-    "web",
-    "server",
-    "cli"
-  ]
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev --no-cache --continue",
+    "standalone-dev": "turbo standalone-dev --no-cache --continue",
+    "lint": "turbo lint",
+    "clean": "turbo clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "turbo build && changeset publish"
+  },
+  "devDependencies": {
+    "@axah/eslint-config": "^2.0.0",
+    "@changesets/cli": "^2.26.2",
+    "eslint": "^8.44.0",
+    "prettier": "^2.8.8",
+    "turbo": "^1.10.7"
+  }
 }

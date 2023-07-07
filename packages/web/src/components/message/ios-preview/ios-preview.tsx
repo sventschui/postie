@@ -1,18 +1,24 @@
-// @flow
-import React from "react";
+import { h } from 'preact';
 
-function pad(num) {
-  return `${num}`.padStart(2, "0");
+function pad(num: number) {
+  return `${num}`.padStart(2, '0');
 }
 
-export default function IOsPreview({ sender, subject, preheader, dateSent }) {
+type Props = {
+  sender: string | undefined;
+  subject: string | undefined;
+  preheader: string;
+  dateSent: Date;
+};
+
+export default function IOsPreview({ sender, subject, preheader, dateSent }: Props) {
   return (
     <div className="mail">
       <div className="meta">
         <i className="unread" />
         <p className="sender">{sender}</p>
         <span className="received">{`${pad(dateSent.getHours())}:${pad(
-          dateSent.getMinutes()
+          dateSent.getMinutes(),
         )}`}</span>
         <i className="caret" />
       </div>
@@ -33,7 +39,7 @@ export default function IOsPreview({ sender, subject, preheader, dateSent }) {
           position: relative;
           margin: 0 auto;
           padding: 8px 15px 8px 30px;
-          font-family: "San Francisco", sans-serif;
+          font-family: 'San Francisco', sans-serif;
           background-color: white;
           border-bottom: 1px solid #c8c7cc;
           width: 100%;

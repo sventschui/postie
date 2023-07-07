@@ -1,18 +1,17 @@
-import mongodbModule from "mongodb";
-import Koa from "koa";
-import http from "http";
-import { createServers } from "./index.mjs";
-
-const { MongoClient } = mongodbModule;
+import { MongoClient } from 'mongodb';
+import Koa from 'koa';
+import http from 'http';
+import { createServers } from './index';
+import log from './log';
 
 (async () => {
-  const mongo = await MongoClient.connect("mongodb://127.0.0.1:27017", {
-    useUnifiedTopology: true
-  });
-  const db = mongo.db("mail");
+  const httpServer = http.createServer();
+  const mongo = await MongoClient.connect('mongodb://127.0.0.1:27017');
+  const db = mongo.db('mail');
 
-  const { router, installSubscriptionHandlers, smtpServer } = await createServers({
-    db
+  const { router, smtpServer } = await createServers({
+    db,
+    httpServer,
   });
 
   const app = new Koa();
@@ -20,12 +19,10 @@ const { MongoClient } = mongodbModule;
   app.use(router.routes());
   app.use(router.allowedMethods());
 
-  const server = http.createServer(app.callback());
-
-  installSubscriptionHandlers(server);
+  httpServer.on('request', app.callback());
 
   smtpServer.listen(1030);
-  server.listen(8025);
+  httpServer.listen(8025);
 
-  console.log("🚀 Server ready at http://127.0.0.1:8025");
+  log.info('🚀 Server ready at http://127.0.0.1:8025');
 })();

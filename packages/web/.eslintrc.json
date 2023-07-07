@@ -1,5 +1,12 @@
 {
   "parserOptions": {
     "project": "./tsconfig.json"
+  },
+  "ignorePatterns": [
+    "build/"
+  ],
+  "rules": {
+    "no-underscore-dangle": "warn",
+    "no-param-reassign": "warn"
   }
 }

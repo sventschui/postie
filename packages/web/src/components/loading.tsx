@@ -1,6 +1,6 @@
-import { h } from "preact";
+import { h } from 'preact';
 
-export default function Loading({ color = 'purple'}) {
+export default function Loading({ color = 'purple' }) {
   return (
     <div className={`sk-chase ${color}`}>
       <div className="sk-chase-dot"></div>
@@ -27,7 +27,7 @@ export default function Loading({ color = 'purple'}) {
         }
 
         .sk-chase-dot:before {
-          content: "";
+          content: '';
           display: block;
           width: 25%;
           height: 25%;

@@ -1,55 +1,68 @@
-import apolloServerModule from "apollo-server-koa";
-import {
-  applyPagination,
-  querySortById,
-  querySortBy,
-  parseCursor,
-  formatCursor
-} from "./utils.mjs";
-import m from "mongodb";
-import escapeRegex from "escape-string-regexp";
+import { PubSub } from 'graphql-subscriptions';
+import type { Collection, GridFSBucket, WithId, ObjectId } from 'mongodb';
+import gql from 'graphql-tag';
+import type { DocumentNode } from 'graphql/language';
+import { applyPagination, formatCursor, parseCursor, querySortBy, querySortById } from './utils';
+import type { Attachment, Message, SortDirection } from '../messages/types';
 
-const { ObjectId } = m;
-const { ApolloServer, gql, PubSub } = apolloServerModule;
+const escapeRegex = (value: string) =>
+  import('escape-string-regexp').then(({ default: escapeRegexDefault }) =>
+    escapeRegexDefault(value),
+  );
 
 const pubsub = new PubSub();
 
-const MESSAGES_ADDED = "MESSAGES_ADDED";
-const MESSAGES_DELETED = "MESSAGES_DELETED";
+const MESSAGES_ADDED = 'MESSAGES_ADDED';
+const MESSAGES_DELETED = 'MESSAGES_DELETED';
 
-export function onMessagesAdded(messages) {
+export function onMessagesAdded(messages: ReadonlyArray<Message>) {
   return pubsub.publish(MESSAGES_ADDED, { messagesAdded: messages });
 }
 
-export function onMessagesDeleted(ids) {
+export function onMessagesDeleted(ids: ReadonlyArray<string>) {
   return pubsub.publish(MESSAGES_DELETED, { messagesDeleted: { ids } });
 }
 
-function buildFilter({ to, subject, text, lang }) {
-  const regexOpts = ""; // adding 'i' here will make the search super slow...
-  const filter = {};
+async function buildFilter({
+  to,
+  subject,
+  text,
+  lang,
+}: {
+  to: string;
+  subject: string;
+  text: string;
+  lang: string;
+}) {
+  const regexOpts = ''; // adding 'i' here will make the search super slow...
+  const filter: Partial<{
+    'to.text': { $regex: RegExp };
+    subject: { $regex: RegExp };
+    text: { $regex: RegExp };
+    lang: string;
+  }> = {};
 
   if (to) {
-    filter["to.text"] = { $regex: new RegExp(escapeRegex(to), regexOpts) };
+    filter['to.text'] = { $regex: new RegExp(await escapeRegex(to), regexOpts) };
   }
 
   if (subject) {
-    filter["subject"] = { $regex: new RegExp(escapeRegex(subject), regexOpts) };
+    filter.subject = { $regex: new RegExp(await escapeRegex(subject), regexOpts) };
   }
 
   if (text) {
-    filter["text"] = { $regex: new RegExp(escapeRegex(text), regexOpts) };
+    filter.text = { $regex: new RegExp(await escapeRegex(text), regexOpts) };
   }
 
   if (lang && lang !== 'all') {
-    filter["lang"] = lang;
+    filter.lang = lang;
   }
 
   return filter;
 }
 
 // The GraphQL schema
-const typeDefs = gql`
+export const typeDefs: DocumentNode = gql`
   type Query {
     messages(
       first: Int
@@ -139,8 +152,8 @@ const typeDefs = gql`
   type Message {
     id: ID!
     from: SenderRecipient
-    to: [SenderRecipient]!
-    cc: [SenderRecipient]!
+    to: [SenderRecipient!]!
+    cc: [SenderRecipient!]!
     text: String!
     html: String
     subject: String
@@ -169,154 +182,193 @@ const typeDefs = gql`
 `;
 
 const fields = {
-  FROM: "from",
-  SUBJECT: "subject",
-  DATE: "headers.date"
+  FROM: 'from',
+  SUBJECT: 'subject',
+  DATE: 'headers.date',
 };
 
 async function deleteMessage(
-  messages,
-  attachmentsBucket,
-  { _id, attachments }
+  messages: Collection<Message>,
+  attachmentsBucket: GridFSBucket,
+  { _id, attachments }: { _id: ObjectId; attachments: ReadonlyArray<Attachment> },
 ) {
   await Promise.all([
     messages.deleteOne({ _id }),
     ...(attachments
-      ? attachments.map(({ attachmentId }) =>
-          attachmentsBucket.delete(attachmentId)
-        )
-      : [])
+      ? attachments.map(({ attachmentId }) => attachmentsBucket.delete(attachmentId))
+      : []),
   ]);
 }
 
 // A map of functions which return data for the schema.
-const resolvers = {
+export const resolvers = {
   Subscription: {
     messagesAdded: {
-      subscribe: () => pubsub.asyncIterator(MESSAGES_ADDED)
+      subscribe: () => pubsub.asyncIterator(MESSAGES_ADDED),
     },
     messagesDeleted: {
-      subscribe: () => pubsub.asyncIterator(MESSAGES_DELETED)
-    }
+      subscribe: () => pubsub.asyncIterator(MESSAGES_DELETED),
+    },
   },
   Mutation: {
-    async deleteMessages(parent, { input }, { messages, attachmentsBucket }) {
-      // ObjectId to limit the deletion for messages that where stored before just now
-      const currentObjectId = new ObjectId();
-
+    async deleteMessages(
+      _: unknown,
+      input: {
+        first: number;
+        after: string;
+        last: number;
+        before: string;
+        order: { direction: SortDirection; field: 'FROM' | 'SUBJECT' | 'DATE' | 'ID' };
+        to: string;
+        subject: string;
+        text: string;
+        lang: string;
+      },
+      {
+        messages,
+        attachmentsBucket,
+      }: { messages: Collection<Message>; attachmentsBucket: GridFSBucket },
+    ) {
       // we do a find and delete single items loop here to notify subscription listeneres
       // and return the list of dropped dis
-      let allIds = [];
-      let idsOfIteration = [];
+      let allIds: Array<string> = [];
+      let idsOfIteration: Array<string> = [];
       const cursor = messages
         .find({
-          //  _id: { $lt: currentObjectId },
-          ...buildFilter(input)
+          ...(await buildFilter(input)),
         })
-        .project({ _id: 1, "attachments.attachmentId": 1 });
+        .project({ _id: 1, 'attachments.attachmentId': 1 });
 
       let i = 0;
+      // eslint-disable-next-line no-await-in-loop
       while (await cursor.hasNext()) {
-        const item = await cursor.next();
+        // eslint-disable-next-line no-await-in-loop
+        const item = (await cursor.next()) as WithId<Message>;
 
-        deleteMessage(messages, attachmentsBucket, item);
-        idsOfIteration.push(formatCursor("message", item._id));
+        // eslint-disable-next-line no-await-in-loop
+        await deleteMessage(messages, attachmentsBucket, item);
+        idsOfIteration.push(formatCursor('message', item._id));
 
+        // eslint-disable-next-line no-await-in-loop
         if (i > 10 || !(await cursor.hasNext())) {
-          onMessagesDeleted(idsOfIteration);
+          // eslint-disable-next-line no-await-in-loop
+          await onMessagesDeleted(idsOfIteration);
           allIds = allIds.concat(idsOfIteration);
           idsOfIteration = [];
           i = 0;
         }
 
-        i++;
+        i += 1;
       }
 
       return { ids: allIds };
     },
-    async deleteMessage(parent, { input }, { messages, attachmentsBucket }) {
-      const { objectId } = parseCursor(input.id);
+    async deleteMessage(
+      _: unknown,
+      { input }: { input: { id: string } },
+      {
+        messages,
+        attachmentsBucket,
+      }: { messages: Collection<Message>; attachmentsBucket: GridFSBucket },
+    ) {
+      const { id } = parseCursor(input.id);
       const item = await messages.findOne(
-        { _id: objectId },
-        { projection: { _id: 1, "attachments.attachmentId": 1 } }
+        { _id: id },
+        { projection: { _id: 1, 'attachments.attachmentId': 1 } },
       );
 
       if (item) {
-        deleteMessage(messages, attachmentsBucket, item);
-        onMessagesDeleted([input.id]);
+        await deleteMessage(messages, attachmentsBucket, item);
+        await onMessagesDeleted([input.id]);
       }
 
-      return item ? { id: input.id } : {};
-    }
+      return item ? { id } : {};
+    },
   },
   Message: {
-    id(parent) {
-      return formatCursor("message", parent._id);
+    id(parent: WithId<Message>) {
+      return formatCursor('message', parent._id);
     },
-    dateReceived(parent) {
+    dateReceived(parent: WithId<Message>) {
       return parent._id.getTimestamp().toISOString();
     },
-    dateSent(parent) {
-      return (
-        parent.headers &&
-        parent.headers.date &&
-        parent.headers.date.toISOString()
-      );
-    }
+    dateSent(parent: WithId<Message>) {
+      // @ts-ignore
+      return parent.headers && parent.headers.date && parent.headers.date.toISOString();
+    },
   },
   Query: {
-    async message(parent, { id }, { messages }) {
-      const { objectId } = parseCursor(id);
-      return messages.findOne({ _id: objectId });
+    async message(
+      _: unknown,
+      input: { id: string },
+      { messages }: { messages: Collection<Message> },
+    ) {
+      const { id } = parseCursor(input.id);
+      return messages.findOne({ _id: id });
     },
     async messages(
-      parent,
-      { first, after, last, before, order, to, subject, text, lang },
-      { messages }
+      _: unknown,
+      {
+        first,
+        after,
+        last,
+        before,
+        order,
+        to,
+        subject,
+        text,
+        lang,
+      }: {
+        first: number;
+        after: string;
+        last: number;
+        before: string;
+        order: { direction: SortDirection; field: 'FROM' | 'SUBJECT' | 'DATE' | 'ID' };
+        to: string;
+        subject: string;
+        text: string;
+        lang: string;
+      },
+      { messages }: { messages: Collection<Message> },
     ) {
       if (after != null && before != null) {
-        throw new Error(
-          "after and before must not be supplied at the same time!"
-        );
+        throw new Error('after and before must not be supplied at the same time!');
       }
 
       if (first == null && last == null) {
-        throw new Error("first or last must be supplied!");
+        throw new Error('first or last must be supplied!');
       }
 
       if (first != null && last != null) {
-        throw new Error(
-          "first and last must not be supplied at the same time!"
-        );
+        throw new Error('first and last must not be supplied at the same time!');
       }
 
       if (before != null && first != null) {
-        throw new Error("Can not combine before and first!");
+        throw new Error('Can not combine before and first!');
       }
 
       if (after != null && last != null) {
-        throw new Error("Can not combine after and last!");
+        throw new Error('Can not combine after and last!');
       }
 
       if (first <= 0) {
-        throw new Error("first must be > 0!");
+        throw new Error('first must be > 0!');
       }
 
       if (last <= 0) {
-        throw new Error("last must be > 0!");
+        throw new Error('last must be > 0!');
       }
 
       let query;
-      const filter = buildFilter({ to, subject, text, lang });
+      const filter = await buildFilter({
+        to,
+        subject,
+        text,
+        lang,
+      });
 
-      if (!order || order.field === "ID") {
-        query = querySortById(
-          messages,
-          filter,
-          before,
-          after,
-          order ? order.direction : "ASC"
-        );
+      if (!order || order.field === 'ID') {
+        query = querySortById(messages, filter, before, after, order ? order.direction : 'ASC');
       } else {
         query = await querySortBy(
           messages,
@@ -324,17 +376,12 @@ const resolvers = {
           fields[order.field],
           before,
           after,
-          order.direction
+          order.direction,
         );
       }
 
-      const totalCount = await messages.count(filter);
-      const { getItems, pageInfo } = await applyPagination(
-        totalCount,
-        query,
-        first,
-        last
-      );
+      const totalCount = await messages.countDocuments(filter);
+      const { getItems, pageInfo } = await applyPagination(totalCount, query, first, last);
 
       return {
         totalCount,
@@ -342,25 +389,12 @@ const resolvers = {
         async edges() {
           const edges = await getItems();
 
-          return edges.map(node => ({
+          return edges.map((node) => ({
             node,
-            cursor: formatCursor("message", node._id)
+            cursor: formatCursor('message', node._id),
           }));
-        }
+        },
       };
-    }
-  }
+    },
+  },
 };
-
-export default function createServer({ messages, attachmentsBucket, apolloServerOptions }) {
-  const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-    cors: true,
-    subscriptions: true,
-    context: { messages, attachmentsBucket },
-    ...apolloServerOptions,
-  });
-
-  return server;
-}
