@@ -1,0 +1,8 @@
+{
+  "extends": [
+    "@axah/eslint-config"
+  ],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  }
+}

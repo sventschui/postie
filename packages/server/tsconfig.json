@@ -1,0 +1,9 @@
+{
+  "extends": "@axah/tsconfig/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "lib",
+    "typeRoots": ["node_modules/@types"]
+  },
+  "include": ["src/**/**.ts", "jest.config.ts"],
+  "exclude": ["node_modules"]
+}
