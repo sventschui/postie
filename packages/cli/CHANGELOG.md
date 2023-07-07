@@ -1,5 +1,11 @@
 # @axah/postie-cli
 
+## 3.1.2
+
+### Patch Changes
+
+- 8cb7022: Revert version change
+
 ## 3.1.1
 
 ### Patch Changes
