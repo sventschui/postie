@@ -13,8 +13,9 @@ import path from 'path';
 import fs from 'fs';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import http from 'http';
+import packageJson from '../package.json';
 
-const prog = sade('postie');
+const prog = sade(packageJson.version);
 
 prog.version('1.0.0');
 

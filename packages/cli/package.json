@@ -1,14 +1,14 @@
 {
   "name": "@axah/postie-cli",
   "version": "3.1.1",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
+  "main": "./lib/src/index.js",
+  "types": "./lib/src/index.d.ts",
   "license": "MIT",
   "files": [
     "lib/**"
   ],
   "bin": {
-    "postie": "lib/index.js"
+    "postie": "lib/src/index.js"
   },
   "scripts": {
     "dev": "nodemon --watch src src/index.ts start --web-port 8026 --smtp-port 1031 --mongo-db mail",
