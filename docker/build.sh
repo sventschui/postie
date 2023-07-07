@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="$(cat ../cli/package.json | jq -r '.version')"
+VERSION="$(cat ../packges/cli/package.json | jq -r '.version')"
 BUILD_NO="${1:-1}"
 
 echo "VERSION=$VERSION"
