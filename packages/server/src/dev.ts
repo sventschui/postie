@@ -2,7 +2,7 @@ import { MongoClient } from 'mongodb';
 import Koa from 'koa';
 import http from 'http';
 import { createServers } from './index';
-import { log } from './log';
+import { logWithTimestamp } from './util';
 
 (async () => {
   const httpServer = http.createServer();
@@ -24,5 +24,5 @@ import { log } from './log';
   smtpServer.listen(1030);
   httpServer.listen(8025);
 
-  log.info('🚀 Server ready at http://127.0.0.1:8025');
+  logWithTimestamp('🚀 Server ready at http://127.0.0.1:8025');
 })();
