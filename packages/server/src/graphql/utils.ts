@@ -2,6 +2,7 @@ import type { FindCursor, Collection, WithId } from 'mongodb';
 import { ObjectId } from 'mongodb';
 import delve from 'dlv';
 import type { Message, SortDirection } from '../messages/types';
+import { log } from '../log';
 
 export function parseCursor(cursorStr: string) {
   const [type, ObjectIdStr] = Buffer.from(cursorStr, 'base64').toString('utf8').split(':');
@@ -106,7 +107,7 @@ export function querySortById(
       [op]: id,
     };
   }
-
+  log.info(`execute find with filter: ${JSON.stringify(filter)}`);
   return collection.find(filter).sort([['_id', direction === 'ASC' ? 1 : -1]]);
 }
 

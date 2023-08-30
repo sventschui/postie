@@ -4,6 +4,7 @@ import gql from 'graphql-tag';
 import type { DocumentNode } from 'graphql/language';
 import { applyPagination, formatCursor, parseCursor, querySortBy, querySortById } from './utils';
 import type { Attachment, Message, SortDirection } from '../messages/types';
+import { log } from '../log';
 
 const escapeRegex = (value: string) =>
   import('escape-string-regexp').then(({ default: escapeRegexDefault }) =>
@@ -331,6 +332,7 @@ export const resolvers = {
       },
       { messages }: { messages: Collection<Message> },
     ) {
+      log.info(`Start loading messages`);
       if (after != null && before != null) {
         throw new Error('after and before must not be supplied at the same time!');
       }
@@ -366,6 +368,7 @@ export const resolvers = {
         text,
         lang,
       });
+      log.info(`build filter: ${JSON.stringify(filter)}`);
 
       if (!order || order.field === 'ID') {
         query = querySortById(messages, filter, before, after, order ? order.direction : 'ASC');
@@ -379,10 +382,12 @@ export const resolvers = {
           order.direction,
         );
       }
+      log.info(`query executed with filter: ${JSON.stringify(filter)}`);
 
       const totalCount = await messages.countDocuments(filter);
+      log.info(`documents counted with totalCount: ${totalCount}`);
       const { getItems, pageInfo } = await applyPagination(totalCount, query, first, last);
-
+      log.info(`Finished loading messages`);
       return {
         totalCount,
         pageInfo,
